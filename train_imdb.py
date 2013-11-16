@@ -1,11 +1,32 @@
 #!/usr/bin/python
+'''
+train-imdb.py
+
+This script takes a text file containing a movieID on each line and trains
+a Naive Bayes classifier by generating and pickling log probabilities in
+the current directory.
+
+Copyright 2013 Dan Cocuzzo <cocuzzo@cs.stanford.edu>
+               Stephen Wu <shw@stanford.edu>
+'''
+
 import sys
 import imdb
-import cPickle
+import cPickle as pickle
+from math import log
 
 MOVIE_FILE = sys.argv[1]
-NUM_TITLES = 2698956 # select count(*) from title
 MAX_ACTORS = 10
+BINS_RATING = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+BINS_BMULT = ['[0-1)', '[1-2)', '[2-3)', '[3-6)', '[6+]']
+NUM_RATING_BINS = len(BINS_RATING)
+NUM_BMULT_BINS = len(BINS_BMULT)
+
+# db.config should contain a uri of the form:
+# sqlite:///absolute/path/to/imdb.db
+fid = open('db.config', 'r')
+db_uri = fid.readline().strip()
+fid.close()
 
 '''
 guarantees on movies:
@@ -82,17 +103,18 @@ print 'Initializing...'
 p_actor = {}
 p_director = {}
 p_producer = {}
-p_writer = {}
+#p_writer = {}
 p_composer = {}
 p_cinetog = {}
 p_distro = {}
 p_genre = {}
 p_mpaa = {}
-p_runtime = {}
-# p_month = {}
-p_budget = {}
-p_gross = {}
+#p_runtime = {}
+#p_month = {}
+#p_budget = {}
+#p_gross = {}
 p_rating = {}
+p_bmult = {}
 
 rating_count = {} # rating_count['ratingkey'] gives the total count in trainingset for that rating bucket
 bmult_count = {} # bmult_count['bmultkey'] gives the total count in trainingset for that bmultiple bucket
@@ -118,16 +140,16 @@ mpaa_bmult_count = {}
 # month_bmult_count = {}
 
 print 'Loading imdb.db...'
-ia = imdb.IMDb('sql', uri='sqlite:///Users/dan/stanford/cs229/IMDbPY-4.9/sqldb/imdb.db')
+ia = imdb.IMDb('sql', uri=db_uri)
 
 # all pruning will be done in movielist
 mlist = open(MOVIE_FILE, 'r')
 mov_id = mlist.readline().strip()
 
 while mov_id != '':
-    print 'Loading Movie #' + mov_id + ': ',
+    print 'Training on movie #' + mov_id + ': ',
     mov = ia.get_movie(mov_id)
-    print stru(mov['long imdb canonical title']),
+    print stru(mov['long imdb canonical title'])
 
     # generate output classes
     rating = mov['rating'] # guaranteed to exist
@@ -221,34 +243,152 @@ while mov_id != '':
     """
 
     mov_id = mlist.readline().strip()
-    print '...done'
 
-fid = open('rating_count.pkl', 'wb')
-cPickle.dump(rating_count, fid)
+print 'Generating log probability dictionaries...'
+
+# Ex. p_actor[actorid][rkey or bkey] = P(actor | movie is rkey or bkey)
+# = count of # movies with actor AND rkey or bkey  /  count of movies with actor
+# Laplace smoothing with factor 1
+
+for actor_id, rcounts in actor_rating_count.iteritems():
+    p_actor[actor_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_actor[actor_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for director_id, rcounts in director_rating_count.iteritems():
+    p_director[director_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_director[director_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for producer_id, rcounts in producer_rating_count.iteritems():
+    p_producer[producer_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_producer[producer_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for composer_id, rcounts in composer_rating_count.iteritems():
+    p_composer[composer_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_composer[composer_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for cinetog_id, rcounts in cinetog_rating_count.iteritems():
+    p_cinetog[cinetog_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_cinetog[cinetog_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for distro_id, rcounts in distro_rating_count.iteritems():
+    p_distro[distro_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_distro[distro_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for genre_id, rcounts in genre_rating_count.iteritems():
+    p_genre[genre_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_genre[genre_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+for mpaa_id, rcounts in mpaa_rating_count.iteritems():
+    p_mpaa[mpaa_id] = {}
+    total = sum(rcounts.itervalues())
+    for rkey in BINS_RATING:
+        p_mpaa[mpaa_id][rkey] = log(rcounts.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+# generate budget-multiple log probabilities
+
+for actor_id, bcounts in actor_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_actor[actor_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+
+for director_id, bcounts in director_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_director[director_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+        
+for producer_id, bcounts in producer_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_producer[producer_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+        
+for composer_id, bcounts in composer_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_composer[composer_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+  
+for cinetog_id, bcounts in cinetog_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_cinetog[cinetog_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+
+for distro_id, bcounts in distro_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_distro[distro_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+
+for genre_id, bcounts in genre_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_genre[genre_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+
+for mpaa_id, bcounts in mpaa_bmult_count.iteritems():
+    total = sum(rcounts.itervalues())
+    for bkey in BINS_BMULT:
+        p_mpaa[mpaa_id][bkey] = log(bcounts.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+
+# generate priors
+total = sum(rating_count.itervalues())
+for rkey in BINS_RATING:
+    p_rating[rkey] = log(rating_count.setdefault(rkey, 0) + 1) - log(total + NUM_RATING_BINS)
+
+total = sum(bmult_count.itervalues())
+for bkey in BINS_BMULT:
+    p_bmult[bkey] = log(bmult_count.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
+
+print 'Pickling dictionaries...'
+
+fid = open('p_actor.pkl','wb')
+pickle.dump(p_actor, fid)
 fid.close()
 
-fid = open('actor_rating_count.pkl', 'wb')
-cPickle.dump(actor_rating_count, fid)
+fid = open('p_director.pkl','wb')
+pickle.dump(p_director, fid)
 fid.close()
 
-''' other dicts, to be pickled
-actor_rating_count = {} # actor_rating_count['actor_id']['ratingkey'] gives count of that actor in rating
-director_rating_count = {}
-producer_rating_count = {}
-composer_rating_count = {}
-cinetog_rating_count = {}
-distro_rating_count = {}
-genre_rating_count = {}
-mpaa_rating_count = {}
-month_rating_count = {}
+fid = open('p_producer.pkl','wb')
+pickle.dump(p_producer, fid)
+fid.close()
 
-actor_bmult_count = {}
-director_bmult_count = {}
-producer_bmult_count = {}
-composer_bmult_count = {}
-cinetog_bmult_count = {}
-distro_bmult_count = {}
-genre_bmult_count = {}
-mpaa_bmult_count = {}
-month_bmult_count = {}
-'''
+fid = open('p_composer.pkl','wb')
+pickle.dump(p_composer, fid)
+fid.close()
+
+fid = open('p_cinetog.pkl','wb')
+pickle.dump(p_cinetog, fid)
+fid.close()
+
+fid = open('p_distro.pkl','wb')
+pickle.dump(p_distro, fid)
+fid.close()
+
+fid = open('p_genre.pkl','wb')
+pickle.dump(p_genre, fid)
+fid.close()
+
+fid = open('p_mpaa.pkl','wb')
+pickle.dump(p_mpaa, fid)
+fid.close()
+
+fid = open('p_rating.pkl','wb')
+pickle.dump(p_rating, fid)
+fid.close()
+
+fid = open('p_bmult.pkl','wb')
+pickle.dump(p_bmult, fid)
+fid.close()
+
+print 'Done.'
