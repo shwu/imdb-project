@@ -184,10 +184,12 @@ while mov_id != '':
     distro_list = mov.get('distributors')
     if distro_list:
         for i in xrange(len(distro_list)):
-            if stru(distro_list[i].__dict__['data']['country']) == '[us]':
-                distro_id = str(distro_list[i].__dict__['companyID'])
-                distro_rating_count[distro_id][rkey] = distro_rating_count.setdefault(distro_id, {}).setdefault(rkey, 0) + 1
-                distro_bmult_count[distro_id][bkey] = distro_bmult_count.setdefault(distro_id, {}).setdefault(bkey, 0) + 1
+            country = distro_list[i].__dict__['data'].get('country')
+            if country:
+                if stru(country) == '[us]':
+                    distro_id = str(distro_list[i].__dict__['companyID'])
+                    distro_rating_count[distro_id][rkey] = distro_rating_count.setdefault(distro_id, {}).setdefault(rkey, 0) + 1
+                    distro_bmult_count[distro_id][bkey] = distro_bmult_count.setdefault(distro_id, {}).setdefault(bkey, 0) + 1
     
     #for each genre
     genre_list = mov.get('genre')
