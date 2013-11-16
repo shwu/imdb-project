@@ -20,7 +20,7 @@ import ConfigParser
 # p_producer (producers)
 # p_composer (composers)
 # p_cinetog (cinematographers)
-# p_prodco (production co's)
+# p_distro (distribution co's)
 # p_genre (genres)
 # p_mpaa (mpaa rating)
 # p_runtime (runtime ~ 10 min buckets)
@@ -39,7 +39,7 @@ import ConfigParser
 # producer: array of producer (person) ids
 # composer: array of composer (person) ids
 # cinetog: array of cinematographer (person) ids
-# prodco: array of production co (company) ids
+# distro: array of distribution co (company) ids
 # genre: array of genre codes (custom)
 # mpaa: array of MPAA code (single elem array)
 # runtime: array of runtime in minutes (single elem array)

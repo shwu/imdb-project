@@ -89,7 +89,7 @@ p_distro = {}
 p_genre = {}
 p_mpaa = {}
 p_runtime = {}
-p_month = {}
+# p_month = {}
 p_budget = {}
 p_gross = {}
 p_rating = {}
@@ -105,7 +105,7 @@ cinetog_rating_count = {}
 distro_rating_count = {}
 genre_rating_count = {}
 mpaa_rating_count = {}
-month_rating_count = {}
+# month_rating_count = {}
 
 actor_bmult_count = {}
 director_bmult_count = {}
@@ -115,7 +115,7 @@ cinetog_bmult_count = {}
 distro_bmult_count = {}
 genre_bmult_count = {}
 mpaa_bmult_count = {}
-month_bmult_count = {}
+# month_bmult_count = {}
 
 print 'Loading imdb.db...'
 ia = imdb.IMDb('sql', uri='sqlite:///Users/dan/stanford/cs229/IMDbPY-4.9/sqldb/imdb.db')
@@ -125,9 +125,9 @@ mlist = open(MOVIE_FILE, 'r')
 mov_id = mlist.readline().strip()
 
 while mov_id != '':
-    print 'Loading Movie #' + mov_id
+    print 'Loading Movie #' + mov_id + ': ',
     mov = ia.get_movie(mov_id)
-    print 'Processing ' + (mov['long imdb canonical title']),
+    print stru(mov['long imdb canonical title']),
 
     # generate output classes
     rating = mov['rating'] # guaranteed to exist
@@ -135,10 +135,10 @@ while mov_id != '':
     j = 0
     while stru(mov['business']['budget'][i])[0] != '$':
         i += 1;
-    while stru(mov['business']['gross'][i]).find('(USA)') == -1:
+    while stru(mov['business']['gross'][j]).find('(USA)') == -1 or stru(mov['business']['gross'][j])[0] != '$':
         j += 1
-    budget = int(stru(mov['business']['budget'][i])[1:].replace(',',''))
-    gross = int(stru(mov['business']['gross'][i]).split()[0][1:].replace(',',''))
+    budget = int(stru(mov['business']['budget'][i])[1:].split()[0].replace(',',''))
+    gross = int(stru(mov['business']['gross'][j]).split()[0][1:].replace(',',''))
     bmult = float(gross) / budget
     rkey = ratingkey(rating)
     bkey = bmultkey(bmult)    
@@ -213,11 +213,12 @@ while mov_id != '':
         mpaa_bmult_count[mpaa][bkey] = mpaa_bmult_count.setdefault(mpaa, {}).setdefault(bkey, 0) + 1
     
     #for each runtime jk we cant find runtime
-
+    """
     #release month
     month = stru(mov['business']['opening weekend'][0].split()[3])
     month_rating_count[month][rkey] = month_rating_count.setdefault(month, {}).setdefault(rkey, 0) + 1
     month_bmult_count[month][bkey] = month_bmult_count.setdefault(month, {}).setdefault(bkey, 0) + 1
+    """
 
     mov_id = mlist.readline().strip()
     print '...done'
