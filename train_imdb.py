@@ -131,8 +131,14 @@ while mov_id != '':
 
     # generate output classes
     rating = mov['rating'] # guaranteed to exist
-    budget = int(stru(mov['business']['budget'][0])[1:].replace(',',''))
-    gross = int(stru(mov['business']['gross'][0]).split()[0][1:].replace(',',''))
+    i = 0
+    j = 0
+    while stru(mov['business']['budget'][i])[0] == '$':
+        i += 1;
+    while stru(mov['business']['gross'][i]).find('(USA)') == -1:
+        j += 1
+    budget = int(stru(mov['business']['budget'][i])[1:].replace(',',''))
+    gross = int(stru(mov['business']['gross'][i]).split()[0][1:].replace(',',''))
     bmult = float(gross) / budget
     rkey = ratingkey(rating)
     bkey = bmultkey(bmult)    
