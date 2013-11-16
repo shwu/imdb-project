@@ -27,12 +27,12 @@ BINS_BMULT = cfg.get('OutputLabels', 'BINS_BMULT')
 NUM_RATING_BINS = len(BINS_RATING)
 NUM_BMULT_BINS = len(BINS_BMULT)
 
-# db.config should contain a uri of the form:
+# db.cfg should contain a uri of the form:
 # sqlite:///absolute/path/to/imdb.db
 cfg = ConfigParser.ConfigParser()
 cfg.read('db.cfg')
 db_uri = cfg.get('URI', 'IMDB_URI')
-#db_uri = 'sqlite:///afs/ir.stanford.edu/users/s/h/shw/cs229/imdb-project/imdb.db'
+
 '''
 guarantees on movies:
 - must be a movie
