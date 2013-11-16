@@ -63,27 +63,33 @@ import ConfigParser
     #   print "error: MovieSage constructor expects valid configFile."
     #   sys.exit(0)
 
-configFile = '/Users/dan/stanford/cs229/project/config.ini'
+paramsConfig = 'params.cfg'
+dbConfig = 'db.cfg'
 
 # parse the config file to obtain list of feature names
 cfg = ConfigParser.ConfigParser()
-cfg.read(configFile)
-# print cfg.sections()
+cfg.read(paramsConfig)
 
-features = cfg.get('Features', 'features')
-bins_rating = cfg.get('OutputLabels', 'rating')
-bins_bmult = cfg.get('OutputLabels', 'bmult')
-imdbURI = cfg.get('Paths', 'imdbURI')
-try:
-  trainingPath = cfg.get('Paths', 'training')
-except:
-  trainingPath = os.getcwd()
+FEATURES = cfg.get('Features', 'FEATURES')
+BINS_RATING = cfg.get('OutputLabels', 'BINS_RATING')
+BINS_BMULT = cfg.get('OutputLabels', 'BINS_BMULT')
 
-print features
-print bins_rating
-print bins_bmult
-print imdbURI
-print trainingPath
+cfg = ConfigParser.ConfigParser()
+cfg.read(dbConfig)
+
+IMDB_URI = cfg.get('URI', 'IMDB_URI')
+# try:
+#   trainingPath = cfg.get('Paths', 'training')
+# except:
+#   trainingPath = os.getcwd()
+
+MODEL_DIR = 'nbmodel'
+
+# print features
+# print bins_rating
+# print bins_bmult
+# print imdbURI
+# print trainingPath
 
 
 # self.features = ['actor',
@@ -117,29 +123,32 @@ def predict(movie_id):
   movie = hydrate(movie_id)
   
   # initialize posteriors
-  pos_rating = [0] * len(bins_rating)
-  pos_bmult = [0] * len(bins_bmult)
+  pos_rating = [0] * len(BINS_RATING)
+  pos_bmult = [0] * len(BINS_BMULT)
   
-  for feat in features:
+  for feat in FEATURES:
     for id_ in movie[feat]:
-      for br in bins_rating:
+      for br in BINS_RATING:
         stmt = 'p_%s[id_][br]' % feat
         pos_rating[br] += eval(stmt)
-      for bm in bins_bmult:
+      for bm in BINS_BMULT:
         stmt = 'p_%s[id_][bm]' % feat
         pos_bmult[bm] += eval(stmt)
   
-  pred_rating = bins_rating.index(max(pos_bmult))
-  pred_bmult = bins_bmult.index(max(pos_bmult))
+  pred_rating = BINS_RATING.index(max(pos_bmult))
+  pred_bmult = BINS_BMULT.index(max(pos_bmult))
 
   return (pred_rating, pred_bmult)
 
 def hydrate(movie_id):
   from imdb import IMDb
-  ia = IMDb('sql', uri=imdbURI)
-  movie = ia.get_movie(str(movie_id)) 
+  ia = IMDb('sql', uri=IMDB_URI)
+  movie = ia.get_movie(str(movie_id))
+  print movie.keys()
+  # swuster i need you here
 
 
+predict('2553878')
 
 
 
