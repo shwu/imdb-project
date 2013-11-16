@@ -16,16 +16,16 @@ import imdb
 import cPickle as pickle
 from math import log
 import ConfigParser
-from imdbutils import stru, pID, bmultkey, ratingkey
+from imdbutils import stru, hydrate
 
 
 MOVIE_FILE = sys.argv[1]
 
 cfg = ConfigParser.ConfigParser()
 cfg.read('params.cfg')
-MAX_ACTORS = cfg.get('Misc', 'MAX_ACTORS')
-BINS_RATING = cfg.get('OutputLabels', 'BINS_RATING')
-BINS_BMULT = cfg.get('OutputLabels', 'BINS_BMULT')
+MAX_ACTORS = eval(cfg.get('Misc', 'MAX_ACTORS'))
+BINS_RATING = eval(cfg.get('OutputLabels', 'BINS_RATING'))
+BINS_BMULT = eval(cfg.get('OutputLabels', 'BINS_BMULT'))
 NUM_RATING_BINS = len(BINS_RATING)
 NUM_BMULT_BINS = len(BINS_BMULT)
 
@@ -140,97 +140,56 @@ while mov_id != '':
     sys.stdout.write(stru(mov['long imdb canonical title']))
     sys.stdout.flush()
 
-    # generate output classes
-    rating = mov['rating'] # guaranteed to exist
-    i = 0
-    j = 0
-    while stru(mov['business']['budget'][i])[0] != '$':
-        i += 1
-    while stru(mov['business']['gross'][j]).find('(USA)') == -1 or stru(mov['business']['gross'][j])[0] != '$':
-        j += 1
-    budget = int(stru(mov['business']['budget'][i])[1:].split()[0].replace(',',''))
-    gross = int(stru(mov['business']['gross'][j]).split()[0][1:].replace(',',''))
-    bmult = float(gross) / budget
-    rkey = ratingkey(rating)
-    bkey = bmultkey(bmult)    
+    movie = hydrate(mov_id, ia, MAX_ACTORS)
 
+    # generate output classes
+    rkey = movie['rating']
     rating_count[rkey] = rating_count.setdefault(rkey, 0) + 1
+
+    bkey = movie['bmult']  
     bmult_count[bkey] = bmult_count.setdefault(bkey, 0) + 1
 
+    # Count appearances
     #for each actor in the cast list
-    cast_list = mov.get('cast')
-    if cast_list:
-        for i in xrange(min(MAX_ACTORS, len(cast_list))):
-            actor_id = pID(cast_list[i])
-            actor_rating_count[actor_id][rkey] = actor_rating_count.setdefault(actor_id, {}).setdefault(rkey, 0) + 1
-            actor_bmult_count[actor_id][bkey] = actor_bmult_count.setdefault(actor_id, {}).setdefault(bkey, 0) + 1
+    for actor_id in iter(movie['actor']):
+        actor_rating_count[actor_id][rkey] = actor_rating_count.setdefault(actor_id, {}).setdefault(rkey, 0) + 1
+        actor_bmult_count[actor_id][bkey] = actor_bmult_count.setdefault(actor_id, {}).setdefault(bkey, 0) + 1
 
     #for each director
-    director_list = mov.get('director')
-    if director_list:
-        for i in xrange(len(director_list)):
-            director_id = pID(director_list[i])
-            director_rating_count[director_id][rkey] = director_rating_count.setdefault(director_id, {}).setdefault(rkey, 0) + 1
-            director_bmult_count[director_id][bkey] = director_bmult_count.setdefault(director_id, {}).setdefault(bkey, 0) + 1
+    for director_id in iter(movie['director']):
+        director_rating_count[director_id][rkey] = director_rating_count.setdefault(director_id, {}).setdefault(rkey, 0) + 1
+        director_bmult_count[director_id][bkey] = director_bmult_count.setdefault(director_id, {}).setdefault(bkey, 0) + 1
         
     #for each producer
-    producer_list = mov.get('producer')
-    if producer_list:
-        for i in xrange(len(producer_list)):
-            producer_id = pID(producer_list[i])
-            producer_rating_count[producer_id][rkey] = producer_rating_count.setdefault(producer_id, {}).setdefault(rkey, 0) + 1
-            producer_bmult_count[producer_id][bkey] = producer_bmult_count.setdefault(producer_id, {}).setdefault(bkey, 0) + 1
+    for producer_id in iter(movie['producer']):
+        producer_rating_count[producer_id][rkey] = producer_rating_count.setdefault(producer_id, {}).setdefault(rkey, 0) + 1
+        producer_bmult_count[producer_id][bkey] = producer_bmult_count.setdefault(producer_id, {}).setdefault(bkey, 0) + 1
     
     #for each composer
-    composer_list = mov.get('composer')
-    if composer_list:
-        for i in xrange(len(composer_list)):
-            composer_id = pID(composer_list[i])
-            composer_rating_count[composer_id][rkey] = composer_rating_count.setdefault(composer_id, {}).setdefault(rkey, 0) + 1
-            composer_bmult_count[composer_id][bkey] = composer_bmult_count.setdefault(composer_id, {}).setdefault(bkey, 0) + 1
+    for composer_id in iter(movie['composer']):
+        composer_rating_count[composer_id][rkey] = composer_rating_count.setdefault(composer_id, {}).setdefault(rkey, 0) + 1
+        composer_bmult_count[composer_id][bkey] = composer_bmult_count.setdefault(composer_id, {}).setdefault(bkey, 0) + 1
                                 
     #for each cinematographer
-    cinetog_list = mov.get('cinematographer')
-    if cinetog_list:
-        for i in xrange(len(cinetog_list)):
-            cinetog_id = pID(cinetog_list[i])
-            cinetog_rating_count[cinetog_id][rkey] = cinetog_rating_count.setdefault(cinetog_id, {}).setdefault(rkey, 0) + 1
-            cinetog_bmult_count[cinetog_id][bkey] = cinetog_bmult_count.setdefault(cinetog_id, {}).setdefault(bkey, 0) + 1
+    for cinetog_id in iter(movie['cinetog']):
+        cinetog_rating_count[cinetog_id][rkey] = cinetog_rating_count.setdefault(cinetog_id, {}).setdefault(rkey, 0) + 1
+        cinetog_bmult_count[cinetog_id][bkey] = cinetog_bmult_count.setdefault(cinetog_id, {}).setdefault(bkey, 0) + 1
     
     #for each distributor
-    distro_list = mov.get('distributors')
-    if distro_list:
-        for i in xrange(len(distro_list)):
-            country = distro_list[i].__dict__['data'].get('country')
-            if country:
-                if stru(country) == '[us]':
-                    distro_id = str(distro_list[i].__dict__['companyID'])
-                    distro_rating_count[distro_id][rkey] = distro_rating_count.setdefault(distro_id, {}).setdefault(rkey, 0) + 1
-                    distro_bmult_count[distro_id][bkey] = distro_bmult_count.setdefault(distro_id, {}).setdefault(bkey, 0) + 1
+    for distro_id in iter(movie['distro']):
+        distro_rating_count[distro_id][rkey] = distro_rating_count.setdefault(distro_id, {}).setdefault(rkey, 0) + 1
+        distro_bmult_count[distro_id][bkey] = distro_bmult_count.setdefault(distro_id, {}).setdefault(bkey, 0) + 1
     
     #for each genre
-    genre_list = mov.get('genre')
-    if genre_list:
-        for i in xrange(len(genre_list)):
-            genre = stru(genre_list[i])
-            genre_rating_count[genre][rkey] = genre_rating_count.setdefault(genre, {}).setdefault(rkey, 0) + 1
-            genre_bmult_count[genre][bkey] = genre_bmult_count.setdefault(genre, {}).setdefault(bkey, 0) + 1
+    for genre in iter(movie['genre']):
+        genre_rating_count[genre][rkey] = genre_rating_count.setdefault(genre, {}).setdefault(rkey, 0) + 1
+        genre_bmult_count[genre][bkey] = genre_bmult_count.setdefault(genre, {}).setdefault(bkey, 0) + 1
     
     #mpaa rating
-    mpaa = mov.get('mpaa')
-    if mpaa:
-        mpaa = stru(mpaa.split()[1])
+    for mpaa in iter(movie['mpaa']):
         mpaa_rating_count[mpaa][rkey] = mpaa_rating_count.setdefault(mpaa, {}).setdefault(rkey, 0) + 1
         mpaa_bmult_count[mpaa][bkey] = mpaa_bmult_count.setdefault(mpaa, {}).setdefault(bkey, 0) + 1
     
-    #for each runtime jk we cant find runtime
-    """
-    #release month
-    month = stru(mov['business']['opening weekend'][0].split()[3])
-    month_rating_count[month][rkey] = month_rating_count.setdefault(month, {}).setdefault(rkey, 0) + 1
-    month_bmult_count[month][bkey] = month_bmult_count.setdefault(month, {}).setdefault(bkey, 0) + 1
-    """
-
     mov_id = mlist.readline().strip()
 
     sys.stdout.write(' [done]\n')
