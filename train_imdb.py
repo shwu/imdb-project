@@ -368,7 +368,7 @@ sys.stdout.write('[done]\n')
 sys.stdout.write('Pickling... ')
 sys.stdout.flush()
 
-OUTOPUT_DIR = 'nbmodel/'
+OUTPUT_DIR = 'nbmodel/'
 
 fid = open(OUTPUT_DIR + 'p_actor.pkl','wb')
 pickle.dump(p_actor, fid)
