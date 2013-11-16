@@ -133,7 +133,7 @@ while mov_id != '':
     rating = mov['rating'] # guaranteed to exist
     i = 0
     j = 0
-    while stru(mov['business']['budget'][i])[0] == '$':
+    while stru(mov['business']['budget'][i])[0] != '$':
         i += 1;
     while stru(mov['business']['gross'][i]).find('(USA)') == -1:
         j += 1
