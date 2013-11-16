@@ -1,0 +1,4 @@
+# Ignore pkl files in this directory
+*.pkl
+# Except this file
+!.gitignore

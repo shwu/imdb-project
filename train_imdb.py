@@ -368,43 +368,45 @@ sys.stdout.write('[done]\n')
 sys.stdout.write('Pickling... ')
 sys.stdout.flush()
 
-fid = open('p_actor.pkl','wb')
+OUTOPUT_DIR = 'nbmodel/'
+
+fid = open(OUTPUT_DIR + 'p_actor.pkl','wb')
 pickle.dump(p_actor, fid)
 fid.close()
 
-fid = open('p_director.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_director.pkl','wb')
 pickle.dump(p_director, fid)
 fid.close()
 
-fid = open('p_producer.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_producer.pkl','wb')
 pickle.dump(p_producer, fid)
 fid.close()
 
-fid = open('p_composer.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_composer.pkl','wb')
 pickle.dump(p_composer, fid)
 fid.close()
 
-fid = open('p_cinetog.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_cinetog.pkl','wb')
 pickle.dump(p_cinetog, fid)
 fid.close()
 
-fid = open('p_distro.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_distro.pkl','wb')
 pickle.dump(p_distro, fid)
 fid.close()
 
-fid = open('p_genre.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_genre.pkl','wb')
 pickle.dump(p_genre, fid)
 fid.close()
 
-fid = open('p_mpaa.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_mpaa.pkl','wb')
 pickle.dump(p_mpaa, fid)
 fid.close()
 
-fid = open('p_rating.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_rating.pkl','wb')
 pickle.dump(p_rating, fid)
 fid.close()
 
-fid = open('p_bmult.pkl','wb')
+fid = open(OUTPUT_DIR + 'p_bmult.pkl','wb')
 pickle.dump(p_bmult, fid)
 fid.close()
 
