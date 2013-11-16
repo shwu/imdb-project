@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 '''
 train-imdb.py
 
@@ -14,20 +15,24 @@ import sys
 import imdb
 import cPickle as pickle
 from math import log
+import ConfigParser
 
 MOVIE_FILE = sys.argv[1]
-MAX_ACTORS = 10
-BINS_RATING = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
-BINS_BMULT = ['[0-1)', '[1-2)', '[2-3)', '[3-6)', '[6+]']
+
+cfg = ConfigParser.ConfigParser()
+cfg.read('params.cfg')
+MAX_ACTORS = cfg.get('Misc', 'MAX_ACTORS')
+BINS_RATING = cfg.get('OutputLabels', 'BINS_RATING')
+BINS_BMULT = cfg.get('OutputLabels', 'BINS_BMULT')
 NUM_RATING_BINS = len(BINS_RATING)
 NUM_BMULT_BINS = len(BINS_BMULT)
 
 # db.config should contain a uri of the form:
 # sqlite:///absolute/path/to/imdb.db
-fid = open('db.config', 'r')
-db_uri = fid.readline().strip()
-fid.close()
-
+cfg = ConfigParser.ConfigParser()
+cfg.read('db.cfg')
+db_uri = cfg.get('URI', 'IMDB_URI')
+#db_uri = 'sqlite:///afs/ir.stanford.edu/users/s/h/shw/cs229/imdb-project/imdb.db'
 '''
 guarantees on movies:
 - must be a movie
@@ -99,7 +104,8 @@ def stru(string):
 # p_gross (multiple of budget)
 # p_rating (star rating)
 
-print 'Initializing...'
+sys.stdout.write('Initializing... ')
+sys.stdout.flush()
 p_actor = {}
 p_director = {}
 p_producer = {}
@@ -139,17 +145,23 @@ genre_bmult_count = {}
 mpaa_bmult_count = {}
 # month_bmult_count = {}
 
-print 'Loading imdb.db...'
+sys.stdout.write('[done]\n')
+
+sys.stdout.write('Loading imdb.db... ')
+sys.stdout.flush()
 ia = imdb.IMDb('sql', uri=db_uri)
+sys.stdout.write('[done]\n')
 
 # all pruning will be done in movielist
 mlist = open(MOVIE_FILE, 'r')
 mov_id = mlist.readline().strip()
 
 while mov_id != '':
-    print 'Training on movie #' + mov_id + ': ',
+    sys.stdout.write('Training on movie #' + mov_id + ': ')
+    sys.stdout.flush()
     mov = ia.get_movie(mov_id)
-    print stru(mov['long imdb canonical title'])
+    sys.stdout.write(stru(mov['long imdb canonical title']))
+    sys.stdout.flush()
 
     # generate output classes
     rating = mov['rating'] # guaranteed to exist
@@ -244,7 +256,10 @@ while mov_id != '':
 
     mov_id = mlist.readline().strip()
 
-print 'Generating log probability dictionaries...'
+    sys.stdout.write(' [done]\n')
+
+sys.stdout.write('Generating log probabilities... ')
+sys.stdout.flush()
 
 # Ex. p_actor[actorid][rkey or bkey] = P(actor | movie is rkey or bkey)
 # = count of # movies with actor AND rkey or bkey  /  count of movies with actor
@@ -349,7 +364,9 @@ total = sum(bmult_count.itervalues())
 for bkey in BINS_BMULT:
     p_bmult[bkey] = log(bmult_count.setdefault(bkey, 0) + 1) - log(total + NUM_BMULT_BINS)
 
-print 'Pickling dictionaries...'
+sys.stdout.write('[done]\n')
+sys.stdout.write('Pickling... ')
+sys.stdout.flush()
 
 fid = open('p_actor.pkl','wb')
 pickle.dump(p_actor, fid)
@@ -391,4 +408,4 @@ fid = open('p_bmult.pkl','wb')
 pickle.dump(p_bmult, fid)
 fid.close()
 
-print 'Done.'
+sys.stdout.write('[done]\n')
