@@ -16,6 +16,8 @@ import imdb
 import cPickle as pickle
 from math import log
 import ConfigParser
+from imdbutils import stru, pID, bmultkey, ratingkey
+
 
 MOVIE_FILE = sys.argv[1]
 
@@ -42,31 +44,6 @@ guarantees on movies:
 - must have 'gross' within 'business'
 - must have 'opening weekend'
 '''
-
-# buckets the budget multiple
-def bmultkey(bmultiple):
-    if bmultiple < 1:
-        return '[0-1)'
-    elif bmultiple < 2:
-        return '[1-2)'
-    elif bmultiple < 3:
-        return '[2-3)'
-    elif bmultiple < 6:
-        return '[3-6)'
-    else: # bmultiple >= 6
-        return '[6+]';
-
-# buckets the rating
-def ratingkey(rating):
-    return str(int(rating+0.5))
-
-# returns PersonID in string form
-def pID(person):
-    return str(person.__dict__['personID'])
-
-# convert unicode to string
-def stru(string):
-    return string.encode('ascii', 'replace')
 
 # MOVIE DICT (sample point) KEYS:
 
@@ -168,7 +145,7 @@ while mov_id != '':
     i = 0
     j = 0
     while stru(mov['business']['budget'][i])[0] != '$':
-        i += 1;
+        i += 1
     while stru(mov['business']['gross'][j]).find('(USA)') == -1 or stru(mov['business']['gross'][j])[0] != '$':
         j += 1
     budget = int(stru(mov['business']['budget'][i])[1:].split()[0].replace(',',''))

@@ -11,6 +11,7 @@ Copyright 2013 Dan Cocuzzo <cocuzzo@cs.stanford.edu>
 """
 import sys, os
 import ConfigParser
+from imdbutils import stru, pID, ratingkey, bmultkey
 
 ##########################################
 # FEATURE probability dicts:
@@ -145,8 +146,91 @@ def hydrate(movie_id):
   ia = IMDb('sql', uri=IMDB_URI)
   movie = ia.get_movie(str(movie_id))
   print movie.keys()
-  # swuster i need you here
 
+  actor_list = movie.get('cast')
+  actor_ids = []
+  if actor_list:
+    for i in xrange(min(MAX_ACTORS, len(actor_list))):
+      actor_ids.append(pID(actor_list[i]))
+  
+  director_list = movie.get('director')
+  director_ids = []
+  if director_list:
+    for i in xrange(len(director_list)):
+      director_ids.append(pID(director_list[i]))
+
+  producer_list = movie.get('producer')
+  producer_ids = []
+  if producer_list:
+    for i in xrange(len(producer_list)):
+      producer_ids.append(pID(producer_list[i]))
+ 
+  composer_list = movie.get('composer')
+  composer_ids = []
+  if composer_list:
+    for i in xrange(len(composer_list)):
+      composer_ids.append(pID(composer_list[i]))
+
+  cinetog_list = movie.get('cinematographer')
+  cinetog_ids = []
+  if cinetog_list:
+    for i in xrange(len(cinetog_list)):
+      cinetog_ids.append(pID(cinetog_list[i]))
+
+  distro_list = movie.get('distributors')
+  distro_ids = []
+  if distro_list:
+    for i in xrange(len(distro_list)):
+      country = distro_list[i].__dict['data'].get('country')
+      if country:
+        if stru(country) == '[us]':
+          distro_id.append(str(distro_list[i].__dict__['companyID']))
+
+  genre_list = movie.get('genre')
+  genres = []
+  if genre_list:
+    for i in xrange(len(genre_list)):
+      genres.append(stru(genre_list[i]))
+
+  mpaa_rating = mov.get('mpaa')
+  mpaa = []
+  if mpaa_rating:
+    mpaa.append(stru(mpaa_rating.split()[1]))
+
+  rating = movie['rating']
+  i = 0
+  j = 0
+  while stru(movie['business']['budget'][i])[0] != '$':
+    i += 1
+  while stru(movie['business']['gross'][j]).find('(USA)') == -1 or stru(mov['business']['gross'][j][0] != '$':
+    j += 1
+  budget = int(stru(mov['business']['budget'][i])[1:].split()[0].replace(',',''))
+  gross = int(stru(mov['business']['gross'][j]).split()[0][1:].replace(',',''))
+
+  bmult = float(gross)/budget
+  rkey = ratingkey(rating)
+  bkey = bmultkey(bmult)
+
+  movie_dict = {}
+  # inputs
+  movie_dict['actor'] = actor_ids
+  movie_dict['director'] = director_ids
+  movie_dict['producer'] = producer_ids
+  movie_dict['composer'] = composer_ids
+  movie_dict['cinetog'] = cinetog_ids
+  movie_dict['distro'] = distro_ids
+  movie_dict['genre'] = genres
+  movie_dict['mpaa'] = mpaa
+  # outputs
+  movie_dict['rating'] = rkey
+  movie_dict['bmult'] = bkey
+    
+  return movie_dict
+  
+
+#distro
+#genre
+#mpaa
 
 predict('2553878')
 
