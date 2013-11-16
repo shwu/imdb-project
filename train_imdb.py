@@ -7,6 +7,16 @@ MOVIE_FILE = sys.argv[1]
 NUM_TITLES = 2698956 # select count(*) from title
 MAX_ACTORS = 10
 
+'''
+guarantees on movies:
+- must be a movie
+- must have a rating
+- must not be an adult movie
+- must have a 'business' section, and a 'budget' section within that
+- must have 'gross' within 'business'
+- must have 'opening weekend'
+'''
+
 # buckets the budget multiple
 def bmultkey(bmultiple):
     if bmultiple < 1:
@@ -131,42 +141,42 @@ while mov_id != '':
     bmult_count[bkey] = bmult_count.setdefault(bkey, 0) + 1
 
     #for each actor in the cast list
-    cast_list = mov['cast']
+    cast_list = mov.get('cast')
     for i in xrange(min(MAX_ACTORS, len(cast_list))):
         actor_id = pID(cast_list[i])
         actor_rating_count[actor_id][rkey] = actor_rating_count.setdefault(actor_id, {}).setdefault(rkey, 0) + 1
         actor_bmult_count[actor_id][bkey] = actor_bmult_count.setdefault(actor_id, {}).setdefault(bkey, 0) + 1
 
     #for each director
-    director_list = mov['director']
+    director_list = mov.get('director')
     for i in xrange(len(director_list)):
         director_id = pID(director_list[i])
         director_rating_count[director_id][rkey] = director_rating_count.setdefault(director_id, {}).setdefault(rkey, 0) + 1
         director_bmult_count[director_id][bkey] = director_bmult_count.setdefault(director_id, {}).setdefault(bkey, 0) + 1
         
     #for each producer
-    producer_list = mov['producer']
+    producer_list = mov.get('producer')
     for i in xrange(len(producer_list)):
         producer_id = pID(producer_list[i])
         producer_rating_count[producer_id][rkey] = producer_rating_count.setdefault(producer_id, {}).setdefault(rkey, 0) + 1
         producer_bmult_count[producer_id][bkey] = producer_bmult_count.setdefault(producer_id, {}).setdefault(bkey, 0) + 1
     
     #for each composer
-    composer_list = mov['composer']
+    composer_list = mov.get('composer')
     for i in xrange(len(composer_list)):
         composer_id = pID(composer_list[i])
         composer_rating_count[composer_id][rkey] = composer_rating_count.setdefault(composer_id, {}).setdefault(rkey, 0) + 1
         composer_bmult_count[composer_id][bkey] = composer_bmult_count.setdefault(composer_id, {}).setdefault(bkey, 0) + 1
                                 
     #for each cinematographer
-    cinetog_list = mov['cinematographer']
+    cinetog_list = mov.get('cinematographer')
     for i in xrange(len(cinetog_list)):
         cinetog_id = pID(cinetog_list[i])
         cinetog_rating_count[cinetog_id][rkey] = cinetog_rating_count.setdefault(cinetog_id, {}).setdefault(rkey, 0) + 1
         cinetog_bmult_count[cinetog_id][bkey] = cinetog_bmult_count.setdefault(cinetog_id, {}).setdefault(bkey, 0) + 1
     
     #for each distributor
-    distro_list = mov['distributors']
+    distro_list = mov.get('distributors')
     for i in xrange(len(distro_list)):
         if stru(distro_list[i].__dict__['data']['country']) == '[us]':
             distro_id = str(distro_list[i].__dict__['companyID'])
@@ -174,14 +184,14 @@ while mov_id != '':
             distro_bmult_count[distro_id][bkey] = distro_bmult_count.setdefault(distro_id, {}).setdefault(bkey, 0) + 1
     
     #for each genre
-    genre_list = mov['genre']
+    genre_list = mov.get('genre')
     for i in xrange(len(genre_list)):
         genre = stru(genre_list[i])
         genre_rating_count[genre][rkey] = genre_rating_count.setdefault(genre, {}).setdefault(rkey, 0) + 1
         genre_bmult_count[genre][bkey] = genre_bmult_count.setdefault(genre, {}).setdefault(bkey, 0) + 1
     
     #mpaa rating
-    mpaa = stru(mov['mpaa'].split()[1])
+    mpaa = stru(mov.get('mpaa').split()[1])
     mpaa_rating_count[mpaa][rkey] = mpaa_rating_count.setdefault(mpaa, {}).setdefault(rkey, 0) + 1
     mpaa_bmult_count[mpaa][bkey] = mpaa_bmult_count.setdefault(mpaa, {}).setdefault(bkey, 0) + 1
     
