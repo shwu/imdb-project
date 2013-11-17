@@ -134,4 +134,8 @@ def hydrate(movie_id, db, MAX_ACTORS):
     movie_dict['mpaa'] = get_mpaa(movie)
     movie_dict['rating'] = get_rating(movie)
     movie_dict['bmult'] = get_bmult(movie)
+
+    # for debugging purposes
+    movie_dict['title'] = stru(movie['long imdb canonical title'])
+    
     return movie_dict

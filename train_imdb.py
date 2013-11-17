@@ -16,8 +16,7 @@ import imdb
 import cPickle as pickle
 from math import log
 import ConfigParser
-from imdbutils import stru, hydrate
-
+from imdbutils import hydrate
 
 MOVIE_FILE = sys.argv[1]
 
@@ -45,57 +44,17 @@ guarantees on movies:
 - must have 'opening weekend'
 '''
 
-# MOVIE DICT (sample point) KEYS:
-
-# actor: array of actor (person) ids
-# director: array of director (person) ids
-# producer: array of producer (person) ids
-# composer: array of composer (person) ids
-# cinetog: array of cinematographer (person) ids
-# distro: array of distributor (company) ids
-# genre: array of genre codes (custom)
-# mpaa
-# runtime
-# month
-# budget: [US budget bucket]
-# gross: [US gross bucket]
-# bmult: US gross as multiple of budget      string (dict key)
-# rating: rating 0-10, single decimal point  string (dict key)
-
-
-# LOGPROB DICTS
-
-# p_actor (actors)
-# p_director (director)
-# p_producer (producers)
-# p_composer (composers)
-# p_cinetog (cinematographers)
-# p_distro (distributor co's)
-# p_genre (genres)
-# p_mpaa (mpaa rating)
-# p_runtime (runtime ~ 10 min buckets)
-# p_month (US release month)
-# p_budget (? US dollars)
-
-# GROSS (output) probability
-# p_gross (multiple of budget)
-# p_rating (star rating)
-
 sys.stdout.write('Initializing... ')
 sys.stdout.flush()
+
 p_actor = {}
 p_director = {}
 p_producer = {}
-#p_writer = {}
 p_composer = {}
 p_cinetog = {}
 p_distro = {}
 p_genre = {}
 p_mpaa = {}
-#p_runtime = {}
-#p_month = {}
-#p_budget = {}
-#p_gross = {}
 p_rating = {}
 p_bmult = {}
 
@@ -110,7 +69,6 @@ cinetog_rating_count = {}
 distro_rating_count = {}
 genre_rating_count = {}
 mpaa_rating_count = {}
-# month_rating_count = {}
 
 actor_bmult_count = {}
 director_bmult_count = {}
@@ -120,7 +78,6 @@ cinetog_bmult_count = {}
 distro_bmult_count = {}
 genre_bmult_count = {}
 mpaa_bmult_count = {}
-# month_bmult_count = {}
 
 sys.stdout.write('[done]\n')
 
@@ -136,11 +93,11 @@ mov_id = mlist.readline().strip()
 while mov_id != '':
     sys.stdout.write('Training on movie #' + mov_id + ': ')
     sys.stdout.flush()
-    mov = ia.get_movie(mov_id)
-    sys.stdout.write(stru(mov['long imdb canonical title']))
-    sys.stdout.flush()
 
     movie = hydrate(mov_id, ia, MAX_ACTORS)
+
+    sys.stdout.write(movie['title'])
+    sys.stdout.flush()
 
     # generate output classes
     rkey = movie['rating']
