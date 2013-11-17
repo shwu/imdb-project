@@ -7,8 +7,9 @@ This module provides the MovieSage class, used to make
 user-rating and gross-budget-multiplier predictions about
 a given movies.
 
-Copyright 2013 Dan Cocuzzo <cocuzzo@cs.stanford.edu>
-               Stephen Wu <shw@stanford.edu>
+CS229 Final Project
+Dan Cocuzzo <cocuzzo@cs.stanford.edu>
+Stephen Wu <shw@stanford.edu>
 
 """
 import sys, os
