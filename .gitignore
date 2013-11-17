@@ -37,3 +37,6 @@ nosetests.xml
 
 # cs229 files
 *.pkl
+db.cfg
+local/
+local/*
