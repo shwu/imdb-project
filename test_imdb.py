@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 """
 Test module ( package).
 
@@ -10,8 +12,11 @@ Copyright 2013 Dan Cocuzzo <cocuzzo@cs.stanford.edu>
 
 """
 import sys, os
+import operator
 import ConfigParser
-from imdbutils import stru, pID, ratingkey, bmultkey
+from imdbutils import hydrate
+import cPickle as pickle
+from imdb import IMDb
 
 ##########################################
 # FEATURE probability dicts:
@@ -71,9 +76,10 @@ dbConfig = 'db.cfg'
 cfg = ConfigParser.ConfigParser()
 cfg.read(paramsConfig)
 
-FEATURES = cfg.get('Features', 'FEATURES')
-BINS_RATING = cfg.get('OutputLabels', 'BINS_RATING')
-BINS_BMULT = cfg.get('OutputLabels', 'BINS_BMULT')
+FEATURES = eval(cfg.get('Features', 'FEATURES'))
+BINS_RATING = eval(cfg.get('OutputLabels', 'BINS_RATING'))
+BINS_BMULT = eval(cfg.get('OutputLabels', 'BINS_BMULT'))
+MAX_ACTORS = eval(cfg.get('Misc', 'MAX_ACTORS'))
 
 cfg = ConfigParser.ConfigParser()
 cfg.read(dbConfig)
@@ -85,35 +91,44 @@ IMDB_URI = cfg.get('URI', 'IMDB_URI')
 #   trainingPath = os.getcwd()
 
 MODEL_DIR = 'nbmodel'
+RESULTS_DIR = 'results'
 
-# print features
-# print bins_rating
-# print bins_bmult
-# print imdbURI
-# print trainingPath
+# print FEATURES
+# print BINS_RATING
+# print BINS_BMULT
+# print MAX_ACTORS
+# print IMDB_URI
+
+def load_db():
+  try:
+    db = IMDb('sql', uri=IMDB_URI)
+  except:
+    print "unable to load imdb database [%s]" % IMDB_URI
+    sys.exit(1)
+
+  return db
+
+# load the pickled model files and put them into a dict, keyed by feature labels
+def load_model():
+  nbmodel = {}
+  for feat in FEATURES:
+    pickle_file = os.path.join(MODEL_DIR, 'p_%s.pkl' % feat)
+    fid = open(pickle_file, 'rb')
+    nbmodel[feat] = pickle.load(fid)
+    fid.close()
+
+  # load the output labels explicitly
+  fid = open(os.path.join(MODEL_DIR, 'p_rating.pkl'), 'rb')
+  nbmodel['rating'] = pickle.load(fid)
+  fid.close()
+  fid = open(os.path.join(MODEL_DIR, 'p_bmult.pkl'), 'rb')
+  nbmodel['bmult'] = pickle.load(fid)
+  fid.close()
+
+  return nbmodel
 
 
-# self.features = ['actor',
-# features = ['actor',
-#                  'director',
-#                  'producer',
-#                  'composer',
-#                  'cinetog',
-#                  'prodco',
-#                  'genre',
-#                  'mpaa',
-#                  'runtime',
-#                  'month',
-#                  'budget'
-#                 ]
-
-# bins_rating = ['0','1','2','3','4','5','6','7','8','9','10']
-# bins_bmult = ['[0-1)','[1-2)','[2-3)','[3-6)','[6+]']
-
-# ia = IMDb('sql', uri='sqlite:///Users/dan/stanford/cs229/IMDbPY-4.9/sqldb/imdb.db')
-# movie = ia.get_movie('2553878')
-
-def predict(movie_id):
+def predict(movie_id, nbmodel, imdb_db):
   """
   returns the predicted class labels (defined above) for 
   user-rating and gross-budget-mult by choosing the class 
@@ -121,119 +136,112 @@ def predict(movie_id):
   """
   
   # generate custom movie dict by ingesting features from the database
-  movie = hydrate(movie_id)
+  movie = hydrate(movie_id, imdb_db, MAX_ACTORS)
+  true_rating = movie['rating']
+  true_bmult = movie['bmult']
   
   # initialize posteriors
-  pos_rating = [0] * len(BINS_RATING)
-  pos_bmult = [0] * len(BINS_BMULT)
+  # pos_rating = [0] * len(BINS_RATING)
+  # pos_bmult = [0] * len(BINS_BMULT)
+  pos_rating = {}
+  pos_bmult = {}
   
   for feat in FEATURES:
     for id_ in movie[feat]:
       for br in BINS_RATING:
-        stmt = 'p_%s[id_][br]' % feat
-        pos_rating[br] += eval(stmt)
+        stmt = "nbmodel['%s'].setdefault(id_,{}).setdefault(br,0)" % feat
+        val = eval(stmt)
+        try:
+          pos_rating[br] += val
+        except KeyError:
+          pos_rating[br] = val
       for bm in BINS_BMULT:
-        stmt = 'p_%s[id_][bm]' % feat
-        pos_bmult[bm] += eval(stmt)
+        stmt = "nbmodel['%s'].setdefault(id_,{}).setdefault(bm,0)" % feat
+        val = eval(stmt)
+        try:
+          pos_bmult[bm] += val
+        except KeyError:
+          pos_bmult[bm] = val
+
+  # add class priors
+  for br in BINS_RATING:
+    pos_rating[br] += nbmodel['rating'][br]
+  for bm in BINS_BMULT:
+    pos_bmult[bm] += nbmodel['bmult'][bm]
   
-  pred_rating = BINS_RATING.index(max(pos_bmult))
-  pred_bmult = BINS_BMULT.index(max(pos_bmult))
+  pred_rating = max(pos_rating.iteritems(), key=operator.itemgetter(1))[0]
+  pred_bmult = max(pos_bmult.iteritems(), key=operator.itemgetter(1))[0]
 
-  return (pred_rating, pred_bmult)
+  return ([true_rating, pred_rating], [true_bmult, pred_bmult])
 
-def hydrate(movie_id):
-  from imdb import IMDb
-  ia = IMDb('sql', uri=IMDB_URI)
-  movie = ia.get_movie(str(movie_id))
-  print movie.keys()
+#################################
+########## main script ##########
+#################################
 
-  actor_list = movie.get('cast')
-  actor_ids = []
-  if actor_list:
-    for i in xrange(min(MAX_ACTORS, len(actor_list))):
-      actor_ids.append(pID(actor_list[i]))
-  
-  director_list = movie.get('director')
-  director_ids = []
-  if director_list:
-    for i in xrange(len(director_list)):
-      director_ids.append(pID(director_list[i]))
+if (len(sys.argv) < 2):
+  print "bad args."
+  sys.exit(1)
 
-  producer_list = movie.get('producer')
-  producer_ids = []
-  if producer_list:
-    for i in xrange(len(producer_list)):
-      producer_ids.append(pID(producer_list[i]))
- 
-  composer_list = movie.get('composer')
-  composer_ids = []
-  if composer_list:
-    for i in xrange(len(composer_list)):
-      composer_ids.append(pID(composer_list[i]))
+imdb_db = load_db()
+nbmodel = load_model()
 
-  cinetog_list = movie.get('cinematographer')
-  cinetog_ids = []
-  if cinetog_list:
-    for i in xrange(len(cinetog_list)):
-      cinetog_ids.append(pID(cinetog_list[i]))
+print "testing on file: %s" % sys.argv[1]
+try:
+  f_mlist = open(sys.argv[1], 'r')
+except:
+  print "unable to open test file [%s]" % sys.argv[1]
+  sys.exit(1)
 
-  distro_list = movie.get('distributors')
-  distro_ids = []
-  if distro_list:
-    for i in xrange(len(distro_list)):
-      country = distro_list[i].__dict['data'].get('country')
-      if country:
-        if stru(country) == '[us]':
-          distro_id.append(str(distro_list[i].__dict__['companyID']))
+test_size = 0
+error_rating = 0
+error_bmult = 0
 
-  genre_list = movie.get('genre')
-  genres = []
-  if genre_list:
-    for i in xrange(len(genre_list)):
-      genres.append(stru(genre_list[i]))
+f_rating = open(os.path.join(RESULTS_DIR, 'rating.out'), 'w')
+f_bmult = open(os.path.join(RESULTS_DIR, 'bmult.out'), 'w')
+f_stats = open(os.path.join(RESULTS_DIR, 'stats.out'), 'w')
 
-  mpaa_rating = mov.get('mpaa')
-  mpaa = []
-  if mpaa_rating:
-    mpaa.append(stru(mpaa_rating.split()[1]))
+movie_id = f_mlist.readline().strip()
+while (movie_id):
+  test_size += 1
+  rating, bmult = predict(movie_id, nbmodel, imdb_db)
 
-  rating = movie['rating']
-  i = 0
-  j = 0
-  while stru(movie['business']['budget'][i])[0] != '$':
-    i += 1
-  while stru(movie['business']['gross'][j]).find('(USA)') == -1 or stru(mov['business']['gross'][j][0] != '$':
-    j += 1
-  budget = int(stru(mov['business']['budget'][i])[1:].split()[0].replace(',',''))
-  gross = int(stru(mov['business']['gross'][j]).split()[0][1:].replace(',',''))
+  rating_true = rating[0]
+  rating_pred = rating[1]
 
-  bmult = float(gross)/budget
-  rkey = ratingkey(rating)
-  bkey = bmultkey(bmult)
+  bmult_true = bmult[0]
+  bmult_pred = bmult[1]
 
-  movie_dict = {}
-  # inputs
-  movie_dict['actor'] = actor_ids
-  movie_dict['director'] = director_ids
-  movie_dict['producer'] = producer_ids
-  movie_dict['composer'] = composer_ids
-  movie_dict['cinetog'] = cinetog_ids
-  movie_dict['distro'] = distro_ids
-  movie_dict['genre'] = genres
-  movie_dict['mpaa'] = mpaa
-  # outputs
-  movie_dict['rating'] = rkey
-  movie_dict['bmult'] = bkey
-    
-  return movie_dict
-  
+  error_rating += 0 if (rating_true == rating_pred) else 1
+  error_bmult += 0 if (bmult_true == bmult_pred) else 1
 
-#distro
-#genre
-#mpaa
+  result_rating = 'PASS' if (rating_true == rating_pred) else 'FAIL'
+  result_bmult = 'PASS' if (bmult_true == bmult_pred) else 'FAIL'
 
-predict('2553878')
+  print('%s|%s|%s|%s|%s' % (movie_id, 'RATING', result_rating, rating_true, rating_pred))
+  print('%s|%s|%s|%s|%s' % (movie_id, 'BMULT ', result_bmult, bmult_true, bmult_pred))
 
+  f_rating.write('%s|%s|%s|%s\n' % (movie_id, result_rating, rating_true, rating_pred))
+  f_bmult.write('%s|%s|%s|%s\n' % (movie_id, result_bmult, bmult_true, bmult_pred))
 
+  movie_id = f_mlist.readline().strip()
+  # end of test loop
 
-  
+f_mlist.close()
+f_rating.close()
+f_bmult.close()
+
+error_rating = float(error_rating) / test_size
+error_bmult = float(error_bmult) / test_size
+
+f_stats.write('test_size=%d' % test_size)
+f_stats.write('error_rating=%f' % error_rating)
+f_stats.write('error_bmult=%f' % error_bmult)
+
+f_stats.close()
+
+print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+print 'NAIVE BAYES TEST STATISTICS'
+print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+print 'test_size=%d' % test_size
+print 'error_rating=%f' % error_rating
+print 'error_bmult=%f' % error_bmult
