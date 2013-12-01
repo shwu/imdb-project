@@ -1,0 +1,7 @@
+TASKS
+
+LibSVM implementation
+Plots for report
+NB parameter tuning
+Further pruning options
+alternative model (?) / alternative problem (?)
