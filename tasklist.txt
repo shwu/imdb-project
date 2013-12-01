@@ -3,5 +3,9 @@ TASKS
 LibSVM implementation
 Plots for report
 NB parameter tuning
+- change binning
+- change actor counts
+- smoothing factor
+- 
 Further pruning options
 alternative model (?) / alternative problem (?)
