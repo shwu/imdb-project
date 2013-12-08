@@ -35,9 +35,13 @@ nosetests.xml
 .project
 .pydevproject
 
+# OSX crap
+*.DS_Store*
+
 # cs229 files
 *.pkl
 db.cfg
 local/
 local/*
 results/figures/*
+staging/*
