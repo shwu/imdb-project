@@ -139,3 +139,24 @@ def hydrate(movie_id, db, MAX_ACTORS):
     movie_dict['title'] = stru(movie['long imdb canonical title'])
     
     return movie_dict
+
+################################
+# miscellaneous functions
+
+def file_len(fname):
+    with open(fname) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
+
+def list_diff(a, b):
+        b = set(b)
+        return [aa for aa in a if aa not in b]
+
+def copy_anything(src, dst):
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc: # python >2.5
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else: raise

@@ -40,3 +40,4 @@ nosetests.xml
 db.cfg
 local/
 local/*
+results/figures/*

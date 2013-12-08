@@ -21,6 +21,7 @@ import ConfigParser
 from imdbutils import hydrate
 import cPickle as pickle
 from imdb import IMDb
+from imdbutils import file_len, list_diff, copy_anything
 
 ##########################################
 ## GLOBALS
@@ -28,26 +29,6 @@ from imdb import IMDb
 MODEL_DIR = 'nbmodel'
 RESULTS_DIR = 'results'
 XVAL_DIR = 'xval'
-
-# helper functions
-def file_len(fname):
-    with open(fname) as f:
-        for i, l in enumerate(f):
-            pass
-    return i + 1
-
-def list_diff(a, b):
-        b = set(b)
-        return [aa for aa in a if aa not in b]
-
-def copyanything(src, dst):
-    try:
-        shutil.copytree(src, dst)
-    except OSError as exc: # python >2.5
-        if exc.errno == errno.ENOTDIR:
-            shutil.copy(src, dst)
-        else: raise
-
 
 # load config file ?
 
@@ -104,8 +85,8 @@ for k in range(1,K+1):
   os.system('./test_imdb.py %s' % test_file)
 
   # copy training & testing results
-  copyanything(MODEL_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (MODEL_DIR, k)))
-  copyanything(RESULTS_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (RESULTS_DIR, k)))
+  copy_anything(MODEL_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (MODEL_DIR, k)))
+  copy_anything(RESULTS_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (RESULTS_DIR, k)))
 
   # clean training & testing results
   call(['./clean_train.sh'])
