@@ -43,5 +43,8 @@ nosetests.xml
 db.cfg
 local/
 local/*
-results/figures/*
+results_nb/*.out
+results_nb/figures/*
+results_svm/*.out
+results_svm/figures/*
 staging/*
