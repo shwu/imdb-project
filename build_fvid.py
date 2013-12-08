@@ -62,36 +62,43 @@ while mov_id != '':
     # Index personas
 
     for actor_id in iter(movie['actor']):
-        person_fvid[actor_id] = p_id
-        p_id += 1
+        if person_fvid.get(actor_id) == None: 
+            person_fvid[actor_id] = p_id
+            p_id += 1
 
     for director_id in iter(movie['director']):
-        person_fvid[director_id] = p_id
-        p_id += 1
+        if person_fvid.get(director_id) == None: 
+            person_fvid[director_id] = p_id
+            p_id += 1
  
     for producer_id in iter(movie['producer']):
-        person_fvid[producer_id] = p_id
-        p_id += 1
+        if person_fvid.get(producer_id) == None: 
+            person_fvid[producer_id] = p_id
+            p_id += 1
  
     for composer_id in iter(movie['composer']):
-        person_fvid[composer_id] = p_id
-        p_id += 1
+        if person_fvid.get(composer_id) == None: 
+            person_fvid[composer_id] = p_id
+            p_id += 1
  
     for cinetog_id in iter(movie['cinetog']):
-        person_fvid[cinetog_id] = p_id
-        p_id += 1
+        if person_fvid.get(cinetog_id) == None: 
+            person_fvid[cinetog_id] = p_id
+            p_id += 1
 
     # Index distributors
 
     for distro_id in iter(movie['distro']):
-        distro_fvid[distro_id] = d_id
-        d_id += 1
+        if distro_fvid.get(distro_id) == None:
+            distro_fvid[distro_id] = d_id
+            d_id += 1
 
     # Index genres
  
     for genre in iter(movie['genre']):
-        genre_fvid[genre] = g_id
-        g_id += 1
+        if genre_fvid.get(genre) == None:
+            genre_fvid[genre] = g_id
+            g_id += 1
  
     mov_id = mlist.readline().strip()
 
