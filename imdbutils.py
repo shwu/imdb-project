@@ -135,8 +135,13 @@ def get_genres(movie):
 def get_mpaa(movie):
     mpaa = movie.get('mpaa')
     mpaas = []
+    if mpaa == None:
+        sys.stdout.write('\n NO RATING FOUND FOR THIS MOVIE \n')
     if mpaa:
         mpaas.append(stru(mpaa.split()[1]))
+        if mpaas[0] == 'for':
+            sys.stdout.write('\n FOUND WEIRD MPAA RATING \n'
+            sys.stdout.write(mpaa + '\n');
     return mpaas
 
 # converts a movie_id into a movie dict
@@ -158,6 +163,20 @@ def hydrate(movie_id, db, MAX_ACTORS):
     movie_dict['title'] = stru(movie['long imdb canonical title'])
     
     return movie_dict
+
+def mpaa_to_rating(mpaa):
+    if mpaa == 'G':
+        return 0
+    elif mpaa == 'PG':
+        return 1
+    elif mpaa == 'PG-13':
+        return 2
+    elif mpaa == 'R':
+        return 3
+    elif mpaa == 'NC-17':
+        return 4
+    else:
+        return 0 # assume G rated otherwise
 
 ################################
 # miscellaneous functions
