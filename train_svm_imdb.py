@@ -17,7 +17,8 @@ import cPickle as pickle
 from math import log
 import ConfigParser
 from imdbutils import hydrate, mpaa_to_label
-from svm import *
+import numpy as np
+from sklearn.svm import SVC
 
 MOVIE_FILE = sys.argv[1]
 
@@ -57,15 +58,15 @@ sys.stdout.write('[done]\n')
 sys.stdout.write('Loading feature indices... ')
 sys.stdout.flush()
 
-fid = open('person_fvid.pkl', 'rb')
+fid = open('staging/person_fvid.pkl', 'rb')
 person_fvid = pickle.load(fid)
 fid.close()
 
-fid = open('distro_fvid.pkl', 'rb')
+fid = open('staging/distro_fvid.pkl', 'rb')
 distro_fvid = pickle.load(fid)
 fid.close()
 
-fid = open('genre_fvid.pkl', 'rb')
+fid = open('staging/genre_fvid.pkl', 'rb')
 genre_fvid = pickle.load(fid)
 fid.close()
 
@@ -75,10 +76,10 @@ fid.close()
 NUM_PERSONS = len(person_fvid)
 NUM_DISTROS = len(distro_fvid)
 NUM_GENRES = len(genre_fvid)
-PERSONS_OFFSET = 0
-DISTROS_OFFSET = PERSONS_OFFSET + NUM_PERSONS + 1
-GENRES_OFFSET = DISTROS_OFFSET + NUM_DISTROS + 1
-MPAA_OFFSET = GENRES_OFFSET + NUM_GENRES + 1
+PERSON_OFFSET = 0
+DISTRO_OFFSET = PERSON_OFFSET + NUM_PERSONS
+GENRE_OFFSET = DISTRO_OFFSET + NUM_DISTROS
+MPAA_OFFSET = GENRE_OFFSET + NUM_GENRES
 FV_LENGTH = NUM_PERSONS + NUM_DISTROS + NUM_GENRES + 1
 
 sys.stdout.write('[done]\n')
@@ -87,7 +88,6 @@ sys.stdout.write('Loading imdb.db... ')
 sys.stdout.flush()
 ia = imdb.IMDb('sql', uri=db_uri)
 sys.stdout.write('[done]\n')
-
 
 # all pruning will be done in movielist
 mlist = open(MOVIE_FILE, 'r')
@@ -143,15 +143,16 @@ while mov_id != '':
 sys.stdout.write('Training SVM... ')
 sys.stdout.flush()
 
-rating_problem = svm_problem(rating_labels, feature_vecs)
-bmult_problem = svm_problem(bmult_labels, feature_vecs)
+X = np.array(feature_vecs)
+y_rating = np.array(rating_labels)
+y_bmult = np.array(bmult_labels)
 
 # TODO: kernel selection and paramater tuning
-rating_param = svm_parameter(kernel_type=LINEAR, C=10)
-bmult_param = svm_parameter(kernel_type=LINEAR, C=10)
+rating_model = SVC()
+bmult_model = SVC()
 
-rating_model = svm_model(rating_problem, rating_param)
-bmult_model = svm_model(bmult_problem, bmult_param)
+rating_model.fit(X, y_rating)
+bmult_model.fit(X, y_bmult)
 
 sys.stdout.write('[done]\n')
 
@@ -164,7 +165,7 @@ fid = open(OUTPUT_DIR + 'svm_rating_model.pkl', 'wb')
 pickle.dump(rating_model, fid)
 fid.close()
 
-fid = open(OUTPUT_DIR + 'svm_rating_model.pkl', 'wb')
+fid = open(OUTPUT_DIR + 'svm_bmult_model.pkl', 'wb')
 pickle.dump(bmult_model, fid)
 fid.close()
 
