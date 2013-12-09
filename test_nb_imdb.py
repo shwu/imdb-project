@@ -100,7 +100,8 @@ IMDB_URI = cfg.get('URI', 'IMDB_URI')
 #   trainingPath = os.getcwd()
 
 MODEL_DIR = 'nbmodel'
-RESULTS_DIR = 'results'
+RESULTS_DIR = 'results_nb'
+FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
 
 # print FEATURES
 # print BINS_RATING
@@ -302,7 +303,8 @@ plt.xlim(-0.5,10.5)
 a = plt.gca()
 a.set_xticks(map(int,BINS_RATING))
 plt.grid(True)
-plt.savefig('results/figures/hist_rating_compare.png', bbox_inches='tight')
+fig_path = os.path.join(FIGURES_DIR, 'hist_rating_compare.png')
+plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
 # visualize the difference in predictions in a histogram
@@ -316,7 +318,8 @@ plt.xlim(-0.5,10.5)
 a = plt.gca()
 a.set_xticks(map(int,BINS_RATING))
 plt.grid(True)
-plt.savefig('results/figures/hist_rating_dist.png', bbox_inches='tight')
+fig_path = os.path.join(FIGURES_DIR, 'hist_rating_dist.png')
+plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
 ## unused ~ leave here for now.
@@ -352,7 +355,8 @@ a = plt.gca()
 a.set_xticks(range(len(BINS_BMULT)))
 a.set_xticklabels(BINS_BMULT)
 plt.grid(True)
-plt.savefig('results/figures/hist_bmult_compare.png', bbox_inches='tight')
+fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_compare.png')
+plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
 # visualize the difference in predictions in a histogram
@@ -367,7 +371,8 @@ a = plt.gca()
 a.set_xticks(range(len(BINS_BMULT)))
 # a.set_xticklabels(BINS_BMULT)
 plt.grid(True)
-plt.savefig('results/figures/hist_bmult_dist.png', bbox_inches='tight')
+fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_dist.png')
+plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
 # report descriptive statistics to the console

@@ -1,11 +1,10 @@
 #!/bin/bash
-
 while true; do
   read -p "Are you sure you want to clean all files? " yn
   case $yn in
     [Yy]* ) 
-      ./clean_train.sh
-      ./clean_test.sh
+      ./clean_train_nb.sh
+      ./clean_test_nb.sh
       ./clean_xval.sh
       break;;
     [Nn]* ) exit;;

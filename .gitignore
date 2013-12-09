@@ -39,6 +39,8 @@ nosetests.xml
 *.DS_Store*
 
 # cs229 files
+imdb.db
+*.db
 *.pkl
 db.cfg
 local/

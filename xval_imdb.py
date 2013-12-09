@@ -23,18 +23,27 @@ import cPickle as pickle
 from imdb import IMDb
 from imdbutils import file_len, list_diff, copy_anything
 
+# parse args
+model_type = sys.argv[1]
+movie_id_path = sys.argv[2]
+K = int(sys.argv[3])
+
+if sys.argv[1] == '-h' or sys.argv[1] == '--h':
+  print 'usage: ./xval_imdb.py <model type> <mid path> <K>'
+  sys.exit(0)
+
+if model_type != 'nb' and model_type != 'svm':
+  print 'bad model type; choices are [nb, svm]'
+  sys.exit(0)
+
 ##########################################
 ## GLOBALS
 ##########################################
 MODEL_DIR = 'nbmodel'
-RESULTS_DIR = 'results'
+RESULTS_DIR = 'results_%s' % model_type
 XVAL_DIR = 'xval'
-
-# load config file ?
-
-# parse args
-movie_id_path = sys.argv[1]
-K = int(sys.argv[2])
+TRAIN_PROG = 'train_%s_imdb.py' % model_type
+TEST_PROG = 'test_%s_imdb.py' % model_type
 
 movie_id_file = os.path.basename(movie_id_path)
 
@@ -81,13 +90,13 @@ for k in range(1,K+1):
   f_test.close()
 
   # now train/test on this partition
-  os.system('./train_imdb.py %s' % train_file)
-  os.system('./test_imdb.py %s' % test_file)
+  os.system('./%s %s' % (TRAIN_PROG, train_file)
+  os.system('./%s %s' % (TEST_PROG, test_file)
 
   # copy training & testing results
   copy_anything(MODEL_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (MODEL_DIR, k)))
   copy_anything(RESULTS_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (RESULTS_DIR, k)))
 
   # clean training & testing results
-  call(['./clean_train.sh'])
-  call(['./clean_test.sh'])
+  call(['./clean_train.sh %s' % model_type])
+  call(['./clean_test.sh %s' % model_type])
