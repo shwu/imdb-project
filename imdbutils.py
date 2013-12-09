@@ -116,8 +116,13 @@ def get_genres(movie):
 def get_mpaa(movie):
     mpaa = movie.get('mpaa')
     mpaas = []
+    if mpaa == None:
+        sys.stdout.write('\n NO RATING FOUND FOR THIS MOVIE \n')
     if mpaa:
         mpaas.append(stru(mpaa.split()[1]))
+        if mpaas[0] == 'for':
+            sys.stdout.write('\n FOUND WEIRD MPAA RATING \n'
+            sys.stdout.write(mpaa + '\n');
     return mpaas
 
 # converts a movie_id into a movie dict
