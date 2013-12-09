@@ -90,13 +90,13 @@ for k in range(1,K+1):
   f_test.close()
 
   # now train/test on this partition
-  os.system('./%s %s' % (TRAIN_PROG, train_file)
-  os.system('./%s %s' % (TEST_PROG, test_file)
+  os.system('./%s %s' % (TRAIN_PROG, train_file))
+  os.system('./%s %s' % (TEST_PROG, test_file))
 
   # copy training & testing results
   copy_anything(MODEL_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (MODEL_DIR, k)))
   copy_anything(RESULTS_DIR, os.path.join(XVAL_DIR, '%s.K%s' % (RESULTS_DIR, k)))
 
   # clean training & testing results
-  call(['./clean_train.sh %s' % model_type])
-  call(['./clean_test.sh %s' % model_type])
+  call(['./clean_train_%s.sh' % model_type])
+  call(['./clean_test_%s.sh' % model_type])

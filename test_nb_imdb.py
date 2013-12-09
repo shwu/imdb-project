@@ -67,48 +67,6 @@ import pdb
 # bmult: US gross as multiple of budget 
 # rating: rating 0-10, single decimal point
 
-
-# class MovieSage():
-
-  # self.features = [];
-
-  # def __init__(self, configFile=None):
-
-    # if not configFile:
-    #   print "error: MovieSage constructor expects valid configFile."
-    #   sys.exit(0)
-
-paramsConfig = 'params.cfg'
-dbConfig = 'db.cfg'
-
-# parse the config file to obtain list of feature names
-cfg = ConfigParser.ConfigParser()
-cfg.read(paramsConfig)
-
-FEATURES = eval(cfg.get('Features', 'FEATURES'))
-BINS_RATING = eval(cfg.get('OutputLabels', 'BINS_RATING'))
-BINS_BMULT = eval(cfg.get('OutputLabels', 'BINS_BMULT'))
-MAX_ACTORS = eval(cfg.get('Misc', 'MAX_ACTORS'))
-
-cfg = ConfigParser.ConfigParser()
-cfg.read(dbConfig)
-
-IMDB_URI = cfg.get('URI', 'IMDB_URI')
-# try:
-#   trainingPath = cfg.get('Paths', 'training')
-# except:
-#   trainingPath = os.getcwd()
-
-MODEL_DIR = 'nbmodel'
-RESULTS_DIR = 'results_nb'
-FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
-
-# print FEATURES
-# print BINS_RATING
-# print BINS_BMULT
-# print MAX_ACTORS
-# print IMDB_URI
-
 def load_db():
   try:
     db = IMDb('sql', uri=IMDB_URI)
@@ -184,13 +142,58 @@ def predict(movie_id, nbmodel, imdb_db):
 
   return ([true_rating, pred_rating], [true_bmult, pred_bmult])
 
+########################################################################
+########################################################################
+
 #################################
 ########## main script ##########
 #################################
 
+# class MovieSage():
+
+  # self.features = [];
+
+  # def __init__(self, configFile=None):
+
+    # if not configFile:
+    #   print "error: MovieSage constructor expects valid configFile."
+    #   sys.exit(0)
+
+paramsConfig = 'params.cfg'
+dbConfig = 'db.cfg'
+
+# parse the config file to obtain list of feature names
+cfg = ConfigParser.ConfigParser()
+cfg.read(paramsConfig)
+
+FEATURES = eval(cfg.get('Features', 'FEATURES'))
+BINS_RATING = eval(cfg.get('OutputLabels', 'BINS_RATING'))
+BINS_BMULT = eval(cfg.get('OutputLabels', 'BINS_BMULT'))
+MAX_ACTORS = eval(cfg.get('Misc', 'MAX_ACTORS'))
+
+cfg = ConfigParser.ConfigParser()
+cfg.read(dbConfig)
+
+IMDB_URI = cfg.get('URI', 'IMDB_URI')
+# try:
+#   trainingPath = cfg.get('Paths', 'training')
+# except:
+#   trainingPath = os.getcwd()
+
+MODEL_DIR = 'nbmodel'
+RESULTS_DIR = 'results_nb'
+FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
+
 if (len(sys.argv) < 2):
   print "bad args."
   sys.exit(1)
+
+try:
+    partition = sys.argv[2]
+    MODEL_DIR = MODEL_DIR + '.K%s' % str(partition)
+    RESULTS_DIR = RESULTS_DIR + '.K%s' % str(partition)
+except:
+    pass
 
 imdb_db = load_db()
 nbmodel = load_model()
@@ -244,6 +247,10 @@ while (movie_id):
   rating_dist = abs(BINS_RATING.index(rating_pred) - BINS_RATING.index(rating_true))
   bmult_dist = abs(BINS_BMULT.index(bmult_pred) - BINS_BMULT.index(bmult_true))
 
+  # accumulate the sum of distances
+  diff_rating = rating_dist
+  diff_bmult = bmult_dist
+
   # accumulate the sum of squared-differences
   sqdiff_rating += math.pow(rating_dist, 2)
   sqdiff_bmult += math.pow(bmult_dist, 2)
@@ -275,6 +282,8 @@ f_bmult.close()
 
 error_rating = float(error_rating) / test_size
 error_bmult = float(error_bmult) / test_size
+diff_rating = float(diff_rating) / test_size
+diff_bmult = float(diff_bmult) / test_size
 sqdiff_rating = float(sqdiff_rating) / test_size
 sqdiff_bmult = float(sqdiff_bmult) / test_size
 
@@ -283,8 +292,26 @@ f_stats.write('error_rating=%f\n' % error_rating)
 f_stats.write('error_bmult=%f\n' % error_bmult)
 f_stats.write('sqdiff_rating=%f\n' % sqdiff_rating)
 f_stats.write('sqdiff_bmult=%f\n' % sqdiff_bmult)
+f_stats.write('sqdiff_rating=%f\n' % sqdiff_rating)
+f_stats.write('sqdiff_bmult=%f\n' % sqdiff_bmult)
 
 f_stats.close()
+
+# report descriptive statistics to the console
+print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+print 'NAIVE BAYES TEST STATISTICS'
+print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+print 'test_size=%d' % test_size
+print 'wrong_rating=%d' % wrong_rating
+print 'wrong_bmult=%d' % wrong_bmult
+print 'error_rating=%f' % error_rating
+print 'error_bmult=%f' % error_bmult
+print 'diff_rating=%f' % diff_rating
+print 'diff_bmult=%f' % diff_bmult
+print 'sqdiff_rating=%f' % sqdiff_rating
+print 'sqdiff_bmult=%f' % sqdiff_bmult
+
+################################################
 
 # generate histograms for experimental clarity
 import matplotlib.pyplot as plt
@@ -380,17 +407,7 @@ fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_dist.png')
 plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
-# report descriptive statistics to the console
-print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-print 'NAIVE BAYES TEST STATISTICS'
-print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-print 'test_size=%d' % test_size
-print 'wrong_rating=%d' % wrong_rating
-print 'wrong_bmult=%d' % wrong_bmult
-print 'error_rating=%f' % error_rating
-print 'error_bmult=%f' % error_bmult
-print 'sqdif_rating=%f' % sqdiff_rating
-print 'sqdiff_bmult=%f' % sqdiff_bmult
+
 
 # pdb.set_trace()
 

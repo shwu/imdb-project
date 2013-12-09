@@ -208,6 +208,7 @@ def list_diff(a, b):
         return [aa for aa in a if aa not in b]
 
 def copy_anything(src, dst):
+    import shutil
     try:
         shutil.copytree(src, dst)
     except OSError as exc: # python >2.5

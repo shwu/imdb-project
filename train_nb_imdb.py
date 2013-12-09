@@ -19,13 +19,15 @@ import ConfigParser
 from imdbutils import hydrate
 
 MOVIE_FILE = sys.argv[1]
-OUTPUT_DIR = 'nbmodel/'
+OUTPUT_DIR = 'nbmodel'
 
 try:
-    outdir_name = sys.argv[2]
-    OUTPUT_DIR = '%s/' % outdir_name
+    partition = sys.argv[2]
+    OUTPUT_DIR = OUTPUT_DIR + ".K%s" % str(partition)
 except:
     pass
+
+OUTPUT_DIR = OUTPUT_DIR + '/'
 
 cfg = ConfigParser.ConfigParser()
 cfg.read('params.cfg')
