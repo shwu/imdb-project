@@ -140,6 +140,20 @@ def hydrate(movie_id, db, MAX_ACTORS):
     
     return movie_dict
 
+def mpaa_to_rating(mpaa):
+    if mpaa == 'G':
+        return 0
+    elif mpaa == 'PG':
+        return 1
+    elif mpaa == 'PG-13':
+        return 2
+    elif mpaa == 'R':
+        return 3
+    elif mpaa == 'NC-17':
+        return 4
+    else:
+        return 0 # assume G rated otherwise
+
 ################################
 # miscellaneous functions
 
