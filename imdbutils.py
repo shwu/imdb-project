@@ -1,3 +1,6 @@
+import sys
+import pdb
+
 # buckets the budget multiple
 ## V0
 # def bmultkey(bmultiple):
@@ -13,21 +16,34 @@
 #         return '[6+]';
 
 ## V1 12/8/13
+# def bmultkey(bmultiple):
+#     if bmultiple < 0.25:
+#         return '[0-0.25)'
+#     elif bmultiple < 0.5:
+#         return '[0.25-0.5)'
+#     elif bmultiple < 1:
+#         return '[0.5-1)'
+#     elif bmultiple < 2:
+#         return '[1-2)'
+#     elif bmultiple < 3:
+#         return '[2-3)'
+#     elif bmultiple < 6:
+#         return '[3-6)'
+#     else: # bmultiple >= 6
+#         return '[6+]'
+
+## V2 12/8/13
 def bmultkey(bmultiple):
-    if bmultiple < 0.25:
-        return '[0-0.25)'
-    elif bmultiple < 0.5:
-        return '[0.25-0.5)'
+    if bmultiple < 0.1:
+        return '[0-0.1)'
+    elif bmultiple < 0.1:
+        return '[0.1-0.5)'
     elif bmultiple < 1:
         return '[0.5-1)'
     elif bmultiple < 2:
         return '[1-2)'
-    elif bmultiple < 3:
-        return '[2-3)'
-    elif bmultiple < 6:
-        return '[3-6)'
-    else: # bmultiple >= 6
-        return '[6+]';
+    else: # bmultiple >= 2
+        return '[2+])'
 
 
 # buckets the rating
@@ -135,13 +151,13 @@ def get_genres(movie):
 def get_mpaa(movie):
     mpaa = movie.get('mpaa')
     mpaas = []
-    if mpaa == None:
-        sys.stdout.write('\n NO RATING FOUND FOR THIS MOVIE \n')
     if mpaa:
-        mpaas.append(stru(mpaa.split()[1]))
-        if mpaas[0] == 'for':
-            sys.stdout.write('\n FOUND WEIRD MPAA RATING \n'
-            sys.stdout.write(mpaa + '\n');
+        try:
+            rating = stru(mpaa.split()[1])
+        except:
+            pass
+        if rating in ['G','PG','PG-13','R','NC-17']:
+            mpaas.append(rating)
     return mpaas
 
 # converts a movie_id into a movie dict

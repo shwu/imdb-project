@@ -203,6 +203,8 @@ except:
   sys.exit(1)
 
 test_size = 0
+wrong_rating = 0
+wrong_bmult = 0
 error_rating = 0
 error_bmult = 0
 sqdiff_rating = 0.0
@@ -234,6 +236,9 @@ while (movie_id):
   # measure the rating and bmult error
   error_rating += 0 if (rating_true == rating_pred) else 1
   error_bmult += 0 if (bmult_true == bmult_pred) else 1
+
+  wrong_rating += 0 if (rating_true == rating_pred) else 1
+  wrong_bmult += 0 if (bmult_true == bmult_pred) else 1
   
   # compute distance metrics
   rating_dist = abs(BINS_RATING.index(rating_pred) - BINS_RATING.index(rating_true))
@@ -360,7 +365,7 @@ plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
 # visualize the difference in predictions in a histogram
-x = map(int, hist_rating_dist)
+x = map(int, hist_bmult_dist)
 b = [b-0.5 for b in range(len(BINS_RATING)+1)]
 n, bins, patches = plt.hist(x, bins=b, facecolor='r', alpha=0.75)
 plt.xlabel('|BMult{true} - BMult{pred}|')
@@ -380,9 +385,13 @@ print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 print 'NAIVE BAYES TEST STATISTICS'
 print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
 print 'test_size=%d' % test_size
+print 'wrong_rating=%d' % wrong_rating
+print 'wrong_bmult=%d' % wrong_bmult
 print 'error_rating=%f' % error_rating
 print 'error_bmult=%f' % error_bmult
 print 'sqdif_rating=%f' % sqdiff_rating
 print 'sqdiff_bmult=%f' % sqdiff_bmult
+
+# pdb.set_trace()
 
 # fin
