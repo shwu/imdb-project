@@ -19,6 +19,13 @@ import ConfigParser
 from imdbutils import hydrate
 
 MOVIE_FILE = sys.argv[1]
+OUTPUT_DIR = 'nbmodel/'
+
+try:
+    outdir_name = sys.argv[2]
+    OUTPUT_DIR = '%s/' % outdir_name
+except:
+    pass
 
 cfg = ConfigParser.ConfigParser()
 cfg.read('params.cfg')
@@ -260,8 +267,6 @@ for bkey in BINS_BMULT:
 sys.stdout.write('[done]\n')
 sys.stdout.write('Pickling... ')
 sys.stdout.flush()
-
-OUTPUT_DIR = 'nbmodel/'
 
 fid = open(OUTPUT_DIR + 'p_actor.pkl','wb')
 pickle.dump(p_actor, fid)

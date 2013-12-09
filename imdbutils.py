@@ -34,12 +34,12 @@ import pdb
 
 ## V2 12/8/13
 def bmultkey(bmultiple):
-    if bmultiple < 0.1:
-        return '[0-0.1)'
-    elif bmultiple < 0.1:
-        return '[0.1-0.5)'
+    if bmultiple < 0.5:
+        return '[0-0.5)'
+    elif bmultiple < 0.75:
+        return '[0.5-0.75)'
     elif bmultiple < 1:
-        return '[0.5-1)'
+        return '[0.75-1)'
     elif bmultiple < 2:
         return '[1-2)'
     else: # bmultiple >= 2
