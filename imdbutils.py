@@ -43,7 +43,7 @@ def bmultkey(bmultiple):
     elif bmultiple < 2:
         return '[1-2)'
     else: # bmultiple >= 2
-        return '[2+])'
+        return '[2+]'
 
 
 # buckets the rating
