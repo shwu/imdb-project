@@ -180,7 +180,7 @@ def hydrate(movie_id, db, MAX_ACTORS):
     
     return movie_dict
 
-def mpaa_to_rating(mpaa):
+def mpaa_to_label(mpaa):
     if mpaa == 'G':
         return 0
     elif mpaa == 'PG':
