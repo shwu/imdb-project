@@ -49,14 +49,27 @@ guarantees on movies:
 sys.stdout.write('Initializing... ')
 sys.stdout.flush()
 
-feature_vecs = []
-rating_labels = []
-bmult_labels = []
+actual_rating = []
+predicted_rating = []
+actual_bmult = []
+predicted_bmult = []
 
 sys.stdout.write('[done]\n')
 
-sys.stdout.write('Loading feature indices... ')
+sys.stdout.write('Loading model... ')
 sys.stdout.flush()
+
+fid = open('svmmodel/budget.dat', 'r')
+MAX_BUDGET = int(fid.readline().strip())
+fid.close()
+
+fid = open('svmmodel/svm_bmult_model.pkl', 'rb')
+bmult_model = pickle.load(fid)
+fid.close()
+
+fid = open('svmmodel/svm_rating_model.pkl', 'rb')
+rating_model = pickle.load(fid)
+fid.close()
 
 '''
 fid = open('staging/person_fvid.pkl', 'rb')
@@ -99,7 +112,7 @@ mov_id = mlist.readline().strip()
 max_budget = 0 # for normalization purposes
 
 while mov_id != '':
-    sys.stdout.write('Reading movie #' + mov_id + ': ')
+    sys.stdout.write('Predicting movie #' + mov_id + ': ')
     sys.stdout.flush()
 
     movie = hydrate(mov_id, ia, MAX_ACTORS)
@@ -110,9 +123,9 @@ while mov_id != '':
     # initialize feature vector
     current_fv = [0]*FV_LENGTH
 
-    # generate output labels
-    rating_labels.append(BINS_RATING.index(movie['rating']))
-    bmult_labels.append(BINS_BMULT.index(movie['bmult']))
+    # generate actual outputs
+    actual_rating.append(BINS_RATING.index(movie['rating']))
+    actual_bmult.append(BINS_BMULT.index(movie['bmult']))
      
     # Populate feature vector
     '''
@@ -140,55 +153,22 @@ while mov_id != '':
     for mpaa in iter(movie['mpaa']):
         current_fv[MPAA_OFFSET] = float(mpaa_to_label(mpaa)) / 4 # to normalize
 
-    current_fv[BUDGET_OFFSET] = movie['budget']
-    if movie['budget'] > max_budget:
-        max_budget = movie['budget']
+    current_fv[BUDGET_OFFSET] = float(movie['budget']) / MAX_BUDGET
    
-    feature_vecs.append(current_fv)
+    predicted_rating.append(rating_model.predict(current_fv)[0])
+    predicted_bmult.append(bmult_model.predict(current_fv)[0])
  
     mov_id = mlist.readline().strip()
 
     sys.stdout.write(' [done]\n')
 
-sys.stdout.write('Normalizing Features... ')
-sys.stdout.flush()
+rating_diff_sq = 0
+bmult_diff_sq = 0
 
-for fv in iter(feature_vecs):
-    fv[BUDGET_OFFSET] = float(fv[BUDGET_OFFSET]) / max_budget
+for i in range(len(actual_rating)):
+    rating_diff_sq += pow(predicted_rating[i] - actual_rating[i], 2)
+    bmult_diff_sq += pow(predicted_bmult[i] - actual_bmult[i], 2)
 
-sys.stdout.write('[done]\n')
-
-sys.stdout.write('Training SVM... ')
-sys.stdout.flush()
-
-X = np.array(feature_vecs)
-y_rating = np.array(rating_labels)
-y_bmult = np.array(bmult_labels)
-
-# TODO: kernel selection and paramater tuning
-rating_model = SVC()
-bmult_model = SVC()
-
-rating_model.fit(X, y_rating)
-bmult_model.fit(X, y_bmult)
-
-sys.stdout.write('[done]\n')
-
-sys.stdout.write('Pickling... ')
-sys.stdout.flush()
-
-OUTPUT_DIR = 'svmmodel/'
-
-fid = open(OUTPUT_DIR + 'svm_rating_model.pkl', 'wb')
-pickle.dump(rating_model, fid)
-fid.close()
-
-fid = open(OUTPUT_DIR + 'svm_bmult_model.pkl', 'wb')
-pickle.dump(bmult_model, fid)
-fid.close()
-
-fid = open(OUTPUT_DIR + 'budget.dat', 'w')
-fid.write(str(max_budget) + '\n')
-fid.close()
-
-sys.stdout.write('[done]\n')
+sys.stdout.write('\n')
+sys.stdout.write('Average squared difference in rating prediction: ' + str(float(rating_diff_sq) / len(actual_rating)) + '\n')
+sys.stdout.write('Average squared difference in bmult prediction: ' + str(float(bmult_diff_sq) / len(actual_rating)) + '\n')
