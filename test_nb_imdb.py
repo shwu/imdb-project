@@ -20,10 +20,6 @@ from imdbutils import hydrate
 import cPickle as pickle
 from imdb import IMDb
 
-# for stats and visualization
-import numpy as np
-import matplotlib.pyplot as plt
-
 # debugger
 import pdb
 
@@ -187,11 +183,11 @@ FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
 if (len(sys.argv) < 2):
   print "bad args."
   sys.exit(1)
-
 try:
     partition = sys.argv[2]
     MODEL_DIR = MODEL_DIR + '.K%s' % str(partition)
     RESULTS_DIR = RESULTS_DIR + '.K%s' % str(partition)
+    FIGURES_DIR = os.path.join(RESULTS_DIR, 'figures')
 except:
     pass
 
@@ -210,6 +206,8 @@ wrong_rating = 0
 wrong_bmult = 0
 error_rating = 0
 error_bmult = 0
+diff_rating = 0.0
+diff_bmult = 0.0
 sqdiff_rating = 0.0
 sqdiff_bmult = 0.0
 
@@ -248,8 +246,8 @@ while (movie_id):
   bmult_dist = abs(BINS_BMULT.index(bmult_pred) - BINS_BMULT.index(bmult_true))
 
   # accumulate the sum of distances
-  diff_rating = rating_dist
-  diff_bmult = bmult_dist
+  diff_rating += rating_dist
+  diff_bmult += bmult_dist
 
   # accumulate the sum of squared-differences
   sqdiff_rating += math.pow(rating_dist, 2)
@@ -290,8 +288,8 @@ sqdiff_bmult = float(sqdiff_bmult) / test_size
 f_stats.write('test_size=%d\n' % test_size)
 f_stats.write('error_rating=%f\n' % error_rating)
 f_stats.write('error_bmult=%f\n' % error_bmult)
-f_stats.write('sqdiff_rating=%f\n' % sqdiff_rating)
-f_stats.write('sqdiff_bmult=%f\n' % sqdiff_bmult)
+f_stats.write('diff_rating=%f\n' % diff_rating)
+f_stats.write('diff_bmult=%f\n' % diff_bmult)
 f_stats.write('sqdiff_rating=%f\n' % sqdiff_rating)
 f_stats.write('sqdiff_bmult=%f\n' % sqdiff_bmult)
 
@@ -312,14 +310,33 @@ print 'sqdiff_rating=%f' % sqdiff_rating
 print 'sqdiff_bmult=%f' % sqdiff_bmult
 
 ################################################
-
 # generate histograms for experimental clarity
 import matplotlib.pyplot as plt
 import numpy as np
 
+############################################
+## RATING PLOTS
+############################################
+
 rating_titles = ['hist_rating_true', 'hist_rating_pred', 'hist_rating_dist']
 rating_distributions = ['hist_rating_true', 'hist_rating_pred', 'hist_rating_dist']
 colors = ['g','b','r']
+
+# visualize true ratings in a histogram
+x = map(int, hist_rating_true)
+b = [b-0.5 for b in range(len(BINS_RATING)+1)]
+n, bins, patches = plt.hist(x, bins=b, alpha=0.75, normed=True)
+# pdb.set_trace()
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.title('Histogram of True Movie Ratings')
+plt.xlim(-0.5,10.5)
+a = plt.gca()
+a.set_xticks(map(int,BINS_RATING))
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_rating_true.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
 
 # visualize true and predicted ratings in a histogram
 x1 = map(int, hist_rating_true)
@@ -354,24 +371,28 @@ fig_path = os.path.join(FIGURES_DIR, 'hist_rating_dist.png')
 plt.savefig(fig_path, bbox_inches='tight')
 plt.close()
 
-## unused ~ leave here for now.
-# for t,d,clr in zip(rating_titles, rating_distributions, colors):
-#   x = map(int, eval(d))
-#   b = [b-0.5 for b in range(len(BINS_RATING)+1)]
-#   n, bins, patches = plt.hist(x, bins=b, facecolor=clr, alpha=0.75)
-#   # pdb.set_trace()
-#   plt.xlabel('Rating')
-#   plt.ylabel('Frequency')
-#   plt.title(t)
-#   plt.xlim(-0.5,10.5)
-#   a = plt.gca()
-#   a.set_xticks(map(int,BINS_RATING))
-#   plt.grid(True)
-#   plt.savefig('results/figures/%s.png' % t, bbox_inches='tight')
-#   plt.close()
+############################################
+## BUDGET-MULT PLOTS
+############################################
 
 bmult_titles = ['hist_bmult_true', 'hist_bmult_pred', 'hist_bmult_dist']
 bmult_distributions = ['hist_bmult_true', 'hist_bmult_pred', 'hist_bmult_dist']
+
+# visualize true bmults in a histogram
+x = [BINS_BMULT.index(v) for v in hist_bmult_true]
+b = [b-0.5 for b in range(len(BINS_BMULT)+1)]
+n, bins, patches = plt.hist(x, bins=b, alpha=0.75, normed=True)
+plt.xlabel('Budget-Multiplier')
+plt.ylabel('Frequency')
+plt.title('Histogram of True Budget-Multipliers')
+plt.xlim(-0.5, len(BINS_BMULT)+0.5)
+a = plt.gca()
+a.set_xticks(range(len(BINS_BMULT)))
+a.set_xticklabels(BINS_BMULT)
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_true.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
 
 # visualize true and predicted bmults in a histogram
 x1 = [BINS_BMULT.index(v) for v in hist_bmult_true]

@@ -36,10 +36,8 @@ import pdb
 def bmultkey(bmultiple):
     if bmultiple < 0.5:
         return '[0-0.5)'
-    elif bmultiple < 0.75:
-        return '[0.5-0.75)'
     elif bmultiple < 1:
-        return '[0.75-1)'
+        return '[0.5-1)'
     elif bmultiple < 2:
         return '[1-2)'
     else: # bmultiple >= 2
@@ -177,7 +175,7 @@ def hydrate(movie_id, db, MAX_ACTORS):
 
     # for debugging purposes
     movie_dict['title'] = stru(movie['long imdb canonical title'])
-    
+
     return movie_dict
 
 def mpaa_to_label(mpaa):
@@ -192,7 +190,7 @@ def mpaa_to_label(mpaa):
     elif mpaa == 'NC-17':
         return 4
     else:
-        return 0 # assume G rated otherwise
+        return 0 # assume G/undefined rating otherwise
 
 ################################
 # miscellaneous functions
