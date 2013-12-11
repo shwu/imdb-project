@@ -24,13 +24,17 @@ from imdb import IMDb
 from imdbutils import file_len, list_diff, copy_anything
 
 # parse args
-movie_id_path = sys.argv[1]
-model_type = sys.argv[2]
-K = int(sys.argv[3])
+if (len(sys.argv) < 4):
+  print 'usage: ./xval_imdb.py <model type> <mid path> <K>'
+  sys.exit(1)
 
 if sys.argv[1] == '-h' or sys.argv[1] == '--h':
   print 'usage: ./xval_imdb.py <model type> <mid path> <K>'
   sys.exit(0)
+
+movie_id_path = sys.argv[1]
+model_type = sys.argv[2]
+K = int(sys.argv[3])
 
 if model_type != 'nb' and model_type != 'svm':
   print 'bad model type; choices are [nb, svm]'
@@ -39,7 +43,7 @@ if model_type != 'nb' and model_type != 'svm':
 ##########################################
 ## GLOBALS
 ##########################################
-MODEL_DIR = 'nbmodel'
+MODEL_DIR = '%smodel' % model_type
 RESULTS_DIR = 'results_%s' % model_type
 XVAL_DIR = 'xval'
 TRAIN_PROG = 'train_%s_imdb.py' % model_type
@@ -90,6 +94,10 @@ for k in range(1,K+1):
   f_test.close()
 
   # now train/test on this partition
+  if model_type == 'svm':
+    BUILD_PROG = 'build_svm_imdb.py'
+    os.system('./%s %s' % (BUILD_PROG, train_file))
+
   os.system('./%s %s' % (TRAIN_PROG, train_file))
   os.system('./%s %s' % (TEST_PROG, test_file))
 

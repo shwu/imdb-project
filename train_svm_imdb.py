@@ -38,8 +38,11 @@ sys.stdout.write('Training SVM... ')
 sys.stdout.flush()
 
 # TODO: kernel selection and paramater tuning
-rating_model = SVC()
-bmult_model = SVC()
+C = float(sys.argv[1])
+gamma = float(sys.argv[2])
+
+rating_model = SVC(C=C, gamma=gamma)
+bmult_model = SVC(C=C, gamma=gamma)
 
 rating_model.fit(X, y_rating)
 bmult_model.fit(X, y_bmult)

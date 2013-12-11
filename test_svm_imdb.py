@@ -11,7 +11,7 @@ Copyright 2013 Dan Cocuzzo <cocuzzo@cs.stanford.edu>
                Stephen Wu <shw@stanford.edu>
 '''
 
-import sys
+import sys, os
 import imdb
 import cPickle as pickle
 from math import log
@@ -19,6 +19,8 @@ import ConfigParser
 from imdbutils import hydrate, mpaa_to_label
 import numpy as np
 from sklearn.svm import SVC
+#debugger
+import pdb
 
 MOVIE_FILE = sys.argv[1]
 
@@ -172,14 +174,23 @@ num_rating_errors = 0
 num_bmult_errors = 0
 
 test_size = len(actual_rating)
-error_rating = predicted_rating
-error_bmult = predicted_bmult
+# error_rating = predicted_rating
+# error_bmult = predicted_bmult
+
+hist_rating_true = []
+hist_rating_pred = []
+hist_rating_dist = []
+hist_bmult_true = []
+hist_bmult_pred = []
+hist_bmult_dist = []
+
+# pdb.set_trace()
 
 for i in xrange(test_size):
-    err_r = predicted_rating[i] - actual_rating [i]
+    err_r = predicted_rating[i] - actual_rating[i]
     err_b = predicted_bmult[i] - actual_bmult[i]
-    error_rating[i] = err_r
-    error_bmult[i] = err_b
+    # error_rating[i] = err_r
+    # error_bmult[i] = err_b
     if err_r != 0:
         num_rating_errors += 1
     if err_b != 0:
@@ -190,6 +201,17 @@ for i in xrange(test_size):
     bmult_abs_err += abs(err_b)
     rating_sum_err = err_r
     bmult_sum_err = err_b
+
+
+# collect histogram stats
+hist_rating_true = actual_rating
+hist_rating_pred = predicted_rating
+hist_rating_dist = [abs(x-y) for x,y in zip(hist_rating_true, hist_rating_pred)]
+
+hist_bmult_true = actual_bmult
+hist_bmult_pred = predicted_bmult
+hist_bmult_dist = [abs(x-y) for x,y in zip(hist_bmult_true, hist_bmult_pred)]
+
     
 avg_abs_rating_err = float(rating_abs_err) / test_size 
 avg_abs_bmult_err = float(bmult_abs_err) / test_size 
@@ -228,3 +250,140 @@ sys.stdout.write('abs_rating_err_variance=' + str(abs_rating_err_variance) + '\n
 sys.stdout.write('abs_bmult_err_variance=' + str(abs_bmult_err_variance) + '\n')
 sys.stdout.write('rating_err_variance=' + str(rating_err_variance) + '\n')
 sys.stdout.write('bmult_err_variance=' + str(bmult_err_variance) + '\n')
+
+################################################
+################################################
+################################################
+
+################################################
+# generate histograms for experimental clarity
+import matplotlib.pyplot as plt
+import numpy as np
+
+FIGURES_DIR = OUTPUT_DIR + 'figures'
+try:
+    os.mkdir(FIGURES_DIR)
+except:
+    pass
+
+# pdb.set_trace()
+
+############################################
+## RATING PLOTS
+############################################
+
+# rating_titles = ['hist_rating_true', 'hist_rating_pred', 'hist_rating_dist']
+# rating_distributions = ['hist_rating_true', 'hist_rating_pred', 'hist_rating_dist']
+# colors = ['g','b','r']
+
+# visualize true ratings in a histogram
+# x = map(int, hist_rating_true)
+x = hist_rating_true
+b = [b-0.5 for b in range(len(BINS_RATING)+1)]
+n, bins, patches = plt.hist(x, bins=b, alpha=0.75, normed=True)
+# pdb.set_trace()
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.title('Histogram of True Movie Ratings')
+plt.xlim(-0.5,10.5)
+a = plt.gca()
+a.set_xticks(map(int,BINS_RATING))
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_rating_true.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
+
+# visualize true and predicted ratings in a histogram
+# x1 = map(int, hist_rating_true)
+# x2 = map(int, hist_rating_pred)
+x1 = hist_rating_true
+x2 = hist_rating_pred
+x = [x1,x2]
+b = [b-0.5 for b in range(len(BINS_RATING)+1)]
+n, bins, patches = plt.hist(x, bins=b, alpha=0.75)
+# pdb.set_trace()
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.title('Histogram of Movie Ratings')
+plt.xlim(-0.5,10.5)
+a = plt.gca()
+a.set_xticks(map(int,BINS_RATING))
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_rating_compare.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
+
+# visualize the difference in predictions in a histogram
+# x = map(int, hist_rating_dist)
+x = hist_rating_dist
+b = [b-0.5 for b in range(len(BINS_RATING)+1)]
+n, bins, patches = plt.hist(x, bins=b, facecolor='r', alpha=0.75)
+plt.xlabel('|Rating{true} - Rating{pred}|')
+plt.ylabel('Frequency')
+plt.title('Histogram of |Rating{true} - Rating{pred}|')
+plt.xlim(-0.5,10.5)
+a = plt.gca()
+a.set_xticks(map(int,BINS_RATING))
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_rating_dist.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
+
+############################################
+## BUDGET-MULT PLOTS
+############################################
+
+# visualize true bmults in a histogram
+# x = [BINS_BMULT.index(v) for v in hist_bmult_true]
+x = hist_bmult_true
+b = [b-0.5 for b in range(len(BINS_BMULT)+1)]
+n, bins, patches = plt.hist(x, bins=b, alpha=0.75, normed=True)
+plt.xlabel('Budget-Multiplier')
+plt.ylabel('Frequency')
+plt.title('Histogram of True Budget-Multipliers')
+plt.xlim(-0.5, len(BINS_BMULT)+0.5)
+a = plt.gca()
+a.set_xticks(range(len(BINS_BMULT)))
+a.set_xticklabels(BINS_BMULT)
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_true.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
+
+# visualize true and predicted bmults in a histogram
+# x1 = [BINS_BMULT.index(v) for v in hist_bmult_true]
+# x2 = [BINS_BMULT.index(v) for v in hist_bmult_pred]
+x1 = hist_bmult_true
+x2 = hist_bmult_pred
+x = [x1, x2]
+b = [b-0.5 for b in range(len(BINS_BMULT)+1)]
+n, bins, patches = plt.hist(x, bins=b, alpha=0.75)
+plt.xlabel('Budget-Multiplier')
+plt.ylabel('Frequency')
+plt.title('Histogram of Budget Multipliers')
+plt.xlim(-0.5, len(BINS_BMULT)+0.5)
+a = plt.gca()
+a.set_xticks(range(len(BINS_BMULT)))
+a.set_xticklabels(BINS_BMULT)
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_compare.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
+
+# visualize the difference in predictions in a histogram
+# x = map(int, hist_bmult_dist)
+x = hist_bmult_dist
+b = [b-0.5 for b in range(len(BINS_RATING)+1)]
+n, bins, patches = plt.hist(x, bins=b, facecolor='r', alpha=0.75)
+plt.xlabel('|BMult{true} - BMult{pred}|')
+plt.ylabel('Frequency')
+plt.title('Histogram of |BMult{true} - BMult{pred}|')
+plt.xlim(-0.5,len(BINS_BMULT)-0.5)
+a = plt.gca()
+a.set_xticks(range(len(BINS_BMULT)))
+# a.set_xticklabels(BINS_BMULT)
+plt.grid(True)
+fig_path = os.path.join(FIGURES_DIR, 'hist_bmult_dist.png')
+plt.savefig(fig_path, bbox_inches='tight')
+plt.close()
+

@@ -5,7 +5,6 @@ while true; do
     [Yy]* ) 
       ./clean_train_nb.sh
       ./clean_test_nb.sh
-      ./clean_xval.sh
       break;;
     [Nn]* ) exit;;
     * ) echo "Please answer yes or

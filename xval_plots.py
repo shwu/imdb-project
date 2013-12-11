@@ -137,6 +137,7 @@ ax.legend([pr1, pr2, pb1, pb2],
 fig_path = os.path.join(FIGURES_DIR, 'xval_error.png')
 plt.savefig(fig_path)
 plt.close()
+print 'saved figure: %s' % fig_path
 
 ################
 ## SQDIFF plots
@@ -161,6 +162,7 @@ ax.legend([pr1, pb1],
 fig_path = os.path.join(FIGURES_DIR, 'xval_sqdiff.png')
 plt.savefig(fig_path)
 plt.close()
+print 'saved figure: %s' % fig_path
 
 
 

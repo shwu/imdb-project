@@ -121,10 +121,11 @@ ax.legend([pr1, pr2, pb1, pb2],
           ["Random RATING error", "Naive-Bayes RATING pred. error", "Random BMULT error", "Naive-Bayes BMULT pred. error"],
           scatterpoints=1,
           loc='center right')
-plt.show()
+# plt.show()
 fig_path = os.path.join(FIGURES_DIR, 'psweep_error.png')
 plt.savefig(fig_path)
 plt.close()
+print 'saved figure: %s' % fig_path
 
 ################
 ## SQDIFF plots
@@ -145,10 +146,11 @@ ax.set_xticks(XAXIS)
 ax.legend([pr1, pb1],
           ["Naive-Bayes RATING pred. MSE", "Naive-Bayes BMULT pred. MSE"],
           loc='upper right')
-plt.show()
+# plt.show()
 fig_path = os.path.join(FIGURES_DIR, 'psweep_sqdiff.png')
 plt.savefig(fig_path)
 plt.close()
+print 'saved figure: %s' % fig_path
 
 
 
