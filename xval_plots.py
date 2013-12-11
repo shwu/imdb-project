@@ -122,15 +122,21 @@ pb2, = plt.plot(XAXIS, error_bmult, 'bo')
 plt.plot(XAXIS, error_bmult, 'b:')
 plt.xlabel('Cross-Val Partition')
 plt.ylabel('Error Rate')
-plt.title('Cross-Validation ~ Error Rate')
+plt.title('Cross-Validation: Naive Bayes Error Rate')
 plt.grid(True)
 plt.xlim(0.5, K+0.5)
 plt.ylim(0,1)
 ax = plt.gca()
 ax.set_xticks(XAXIS)
 ax.legend([pr1, pr2, pb1, pb2], 
-          ["random rating perf", "naive-bayes rating perf", 
-           "random bmult perf", "naive-bayes bmult perf"],
+          ["random rating",
+           "naive bayes rating prediction", 
+           "random bmult", 
+           "naive bayes bmult prediction"],
+          # ["random rating",
+          #  "svm rating prediction", 
+          #  "random bmult", 
+          #  "svm bmult prediction"],
           scatterpoints=1,
           loc='lower right')
 # plt.show()
@@ -148,15 +154,18 @@ plt.plot(XAXIS, sqdiff_rating, 'r:')
 pb1, = plt.plot(XAXIS, sqdiff_bmult, 'bo')
 plt.plot(XAXIS, sqdiff_bmult, 'b:')
 plt.xlabel('Cross-Val Partition')
-plt.ylabel('|Truth - Prediction|^2')
-plt.title('Cross-Validation ~ Squared-Distance')
+plt.ylabel('M.S. Error')
+plt.title('Cross-Validation: Naive Bayes Mean-Squared Error')
 plt.grid(True)
 plt.xlim(0.5, K+0.5)
 plt.ylim(0,3.5)
 ax = plt.gca()
 ax.set_xticks(XAXIS)
-ax.legend([pr1, pb1], 
-          ["sqdiff rating perf", "sqdiff bmult perf"],
+ax.legend([pr1, pb1],
+          ["naive bayes rating prediction", 
+           "naive bayes bmult prediction"], 
+          # ["svm rating prediction", 
+          #  "svm bmult prediction"],
           loc='upper right')
 # plt.show()
 fig_path = os.path.join(FIGURES_DIR, 'xval_sqdiff.png')

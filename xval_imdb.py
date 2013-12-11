@@ -97,8 +97,10 @@ for k in range(1,K+1):
   if model_type == 'svm':
     BUILD_PROG = 'build_svm_imdb.py'
     os.system('./%s %s' % (BUILD_PROG, train_file))
+    os.system('./%s 2 2' % TRAIN_PROG)
+  else:
+    os.system('./%s %s' % (TRAIN_PROG, train_file))
 
-  os.system('./%s %s' % (TRAIN_PROG, train_file))
   os.system('./%s %s' % (TEST_PROG, test_file))
 
   # copy training & testing results

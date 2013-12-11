@@ -26,6 +26,8 @@ TRAIN_PROG = 'train_svm_imdb.py'
 TEST_PROG = 'test_svm_imdb.py'
 
 MID_FILE = sys.argv[1]
+TRAIN_FILE = MID_FILE + '.train'
+TEST_FILE = MID_FILE + '.test'
 
 try:
   # shutil.rmtree(SWEEP_DIR)
@@ -34,10 +36,10 @@ except:
   pass
 
 # build the feature vector ONCE if necessary
-os.system('./%s %s' % (BUILD_PROG, MID_FILE))
+os.system('./%s %s' % (BUILD_PROG, TRAIN_FILE))
 
-CSteps = [0.5, 1, 2]
-GSteps = [0.5, 1, 2]
+CSteps = [1, 2, 4]
+GSteps = [1, 2, 4, 8, 16, 32]
 # CSteps = [0.25, 0.5, 1, 2, 4]
 # GSteps = [0.25, 0.5, 1, 2, 4]
 
@@ -47,7 +49,7 @@ for C in CSteps:
     print '\n\n** tuning paramers {C=%d, gamma=%d} **\n\n' % (C, G)
 
     os.system('./%s %s %s' % (TRAIN_PROG, C, G))
-    os.system('./%s %s' % (TEST_PROG, MID_FILE))
+    os.system('./%s %s' % (TEST_PROG, TEST_FILE))
 
     # copy training & testing results
     # pdb.set_trace()
