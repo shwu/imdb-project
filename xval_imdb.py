@@ -24,8 +24,8 @@ from imdb import IMDb
 from imdbutils import file_len, list_diff, copy_anything
 
 # parse args
-model_type = sys.argv[1]
-movie_id_path = sys.argv[2]
+movie_id_path = sys.argv[1]
+model_type = sys.argv[2]
 K = int(sys.argv[3])
 
 if sys.argv[1] == '-h' or sys.argv[1] == '--h':
