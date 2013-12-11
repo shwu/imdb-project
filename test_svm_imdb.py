@@ -162,13 +162,69 @@ while mov_id != '':
 
     sys.stdout.write(' [done]\n')
 
-rating_diff_sq = 0
-bmult_diff_sq = 0
+rating_sq_err = 0
+bmult_sq_err = 0
+rating_abs_err = 0
+bmult_abs_err = 0
+rating_sum_err = 0
+bmult_sum_err = 0
+num_rating_errors = 0
+num_bmult_errors = 0
 
-for i in range(len(actual_rating)):
-    rating_diff_sq += pow(predicted_rating[i] - actual_rating[i], 2)
-    bmult_diff_sq += pow(predicted_bmult[i] - actual_bmult[i], 2)
+test_size = len(actual_rating)
+error_rating = predicted_rating
+error_bmult = predicted_bmult
 
-sys.stdout.write('\n')
-sys.stdout.write('Average squared difference in rating prediction: ' + str(float(rating_diff_sq) / len(actual_rating)) + '\n')
-sys.stdout.write('Average squared difference in bmult prediction: ' + str(float(bmult_diff_sq) / len(actual_rating)) + '\n')
+for i in xrange(test_size):
+    err_r = predicted_rating[i] - actual_rating [i]
+    err_b = predicted_bmult[i] - actual_bmult[i]
+    error_rating[i] = err_r
+    error_bmult[i] = err_b
+    if err_r != 0:
+        num_rating_errors += 1
+    if err_b != 0:
+        num_bmult_errors += 1
+    rating_sq_err += pow(err_r, 2)
+    bmult_sq_err += pow(err_b, 2)
+    rating_abs_err += abs(err_r)
+    bmult_abs_err += abs(err_b)
+    rating_sum_err = err_r
+    bmult_sum_err = err_b
+    
+avg_abs_rating_err = float(rating_abs_err) / test_size 
+avg_abs_bmult_err = float(bmult_abs_err) / test_size 
+avg_sq_rating_err = float(rating_sq_err) / test_size 
+avg_sq_bmult_err = float(bmult_sq_err) / test_size 
+abs_rating_err_variance = avg_sq_rating_err - pow(avg_abs_rating_err, 2)
+abs_bmult_err_variance = avg_sq_bmult_err - pow(avg_abs_bmult_err, 2)
+avg_rating_err = float(rating_sum_err) / test_size 
+avg_bmult_err = float(bmult_sum_err) / test_size 
+rating_err_variance = avg_sq_rating_err - pow(avg_rating_err, 2)
+bmult_err_variance = avg_sq_bmult_err - pow(avg_bmult_err, 2)
+
+OUTPUT_DIR = 'results_svm/'
+stats_file = open(OUTPUT_DIR + 'stats.out', 'w')
+stats_file.write('test_size=' + str(test_size) + '\n')
+stats_file.write('error_rating=' + str(float(num_rating_errors) / test_size) + '\n')
+stats_file.write('error_bmult=' + str(float(num_bmult_errors) / test_size) + '\n')
+stats_file.write('diff_rating=' + str(avg_abs_rating_err) + '\n')
+stats_file.write('diff_bmult=' + str(avg_abs_bmult_err) + '\n')
+stats_file.write('sqdiff_rating=' + str(avg_sq_rating_err) + '\n')
+stats_file.write('sqdiff_bmult=' + str(avg_sq_bmult_err) + '\n')
+stats_file.write('abs_rating_err_variance=' + str(abs_rating_err_variance) + '\n')
+stats_file.write('abs_bmult_err_variance=' + str(abs_bmult_err_variance) + '\n')
+stats_file.write('rating_err_variance=' + str(rating_err_variance) + '\n')
+stats_file.write('bmult_err_variance=' + str(bmult_err_variance) + '\n')
+stats_file.close()
+
+sys.stdout.write('test_size=' + str(test_size) + '\n')
+sys.stdout.write('error_rating=' + str(float(num_rating_errors) / test_size) + '\n')
+sys.stdout.write('error_bmult=' + str(float(num_bmult_errors) / test_size) + '\n')
+sys.stdout.write('diff_rating=' + str(avg_abs_rating_err) + '\n')
+sys.stdout.write('diff_bmult=' + str(avg_abs_bmult_err) + '\n')
+sys.stdout.write('sqdiff_rating=' + str(avg_sq_rating_err) + '\n')
+sys.stdout.write('sqdiff_bmult=' + str(avg_sq_bmult_err) + '\n')
+sys.stdout.write('abs_rating_err_variance=' + str(abs_rating_err_variance) + '\n')
+sys.stdout.write('abs_bmult_err_variance=' + str(abs_bmult_err_variance) + '\n')
+sys.stdout.write('rating_err_variance=' + str(rating_err_variance) + '\n')
+sys.stdout.write('bmult_err_variance=' + str(bmult_err_variance) + '\n')
