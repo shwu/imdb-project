@@ -38,8 +38,8 @@ except:
 # build the feature vector ONCE if necessary
 os.system('./%s %s' % (BUILD_PROG, TRAIN_FILE))
 
-CSteps = [1, 2, 4]
-GSteps = [1, 2, 4, 8, 16, 32]
+CSteps = [0.25, 0.5, 1, 2, 4]
+GSteps = [0.25, 0.5, 1, 2, 4, 8, 16, 32, 64, 128]
 # CSteps = [0.25, 0.5, 1, 2, 4]
 # GSteps = [0.25, 0.5, 1, 2, 4]
 
@@ -48,12 +48,12 @@ for C in CSteps:
 
     print '\n\n** tuning paramers {C=%d, gamma=%d} **\n\n' % (C, G)
 
-    os.system('./%s %s %s' % (TRAIN_PROG, C, G))
+    os.system('./%s %s %s' % (TRAIN_PROG, str(C), str(G)))
     os.system('./%s %s' % (TEST_PROG, TEST_FILE))
 
     # copy training & testing results
     # pdb.set_trace()
-    copy_anything(RESULTS_DIR, os.path.join(SWEEP_DIR, '%s.C%d.G%d' % (RESULTS_DIR, C, G)))
+    copy_anything(RESULTS_DIR, os.path.join(SWEEP_DIR, '%s.C%s.G%s' % (RESULTS_DIR, str(C), str(G))))
 
     # cleanup
     os.system('./clean_test_svm.sh')

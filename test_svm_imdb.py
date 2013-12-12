@@ -23,6 +23,7 @@ from sklearn.svm import SVC
 import pdb
 
 MOVIE_FILE = sys.argv[1]
+OUTPUT_DIR = 'results_svm/'
 
 cfg = ConfigParser.ConfigParser()
 cfg.read('params.cfg')
@@ -55,6 +56,7 @@ actual_rating = []
 predicted_rating = []
 actual_bmult = []
 predicted_bmult = []
+mids = []
 
 sys.stdout.write('[done]\n')
 
@@ -117,6 +119,8 @@ while mov_id != '':
     sys.stdout.write('Predicting movie #' + mov_id + ': ')
     sys.stdout.flush()
 
+    mids.append(mov_id)
+
     movie = hydrate(mov_id, ia, MAX_ACTORS)
 
     sys.stdout.write(movie['title'])
@@ -159,10 +163,11 @@ while mov_id != '':
    
     predicted_rating.append(rating_model.predict(current_fv)[0])
     predicted_bmult.append(bmult_model.predict(current_fv)[0])
- 
+
     mov_id = mlist.readline().strip()
 
     sys.stdout.write(' [done]\n')
+
 
 rating_sq_err = 0
 bmult_sq_err = 0
@@ -186,6 +191,9 @@ hist_bmult_dist = []
 
 # pdb.set_trace()
 
+f_rating = open(OUTPUT_DIR+'rating.out', 'w')
+f_bmult = open(OUTPUT_DIR+'bmult.out', 'w')
+
 for i in xrange(test_size):
     err_r = predicted_rating[i] - actual_rating[i]
     err_b = predicted_bmult[i] - actual_bmult[i]
@@ -199,9 +207,16 @@ for i in xrange(test_size):
     bmult_sq_err += pow(err_b, 2)
     rating_abs_err += abs(err_r)
     bmult_abs_err += abs(err_b)
-    rating_sum_err = err_r
-    bmult_sum_err = err_b
+    rating_sum_err += err_r
+    bmult_sum_err += err_b
 
+    result_rating = 'PASS' if (err_r == 0) else 'FAIL'
+    result_bmult = 'PASS' if (err_b == 0) else 'FAIL'
+    f_rating.write('%s|%s|%s|%s|%s\n' % (mids[i], result_rating, actual_rating[i], predicted_rating[i], abs(err_r)))
+    f_bmult.write('%s|%s|%s|%s|%s\n' % (mids[i], result_bmult, actual_bmult[i], predicted_bmult[i], abs(err_b)))
+
+f_rating.close()
+f_bmult.close()
 
 # collect histogram stats
 hist_rating_true = actual_rating
@@ -224,7 +239,6 @@ avg_bmult_err = float(bmult_sum_err) / test_size
 rating_err_variance = avg_sq_rating_err - pow(avg_rating_err, 2)
 bmult_err_variance = avg_sq_bmult_err - pow(avg_bmult_err, 2)
 
-OUTPUT_DIR = 'results_svm/'
 stats_file = open(OUTPUT_DIR + 'stats.out', 'w')
 stats_file.write('test_size=' + str(test_size) + '\n')
 stats_file.write('error_rating=' + str(float(num_rating_errors) / test_size) + '\n')

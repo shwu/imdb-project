@@ -120,7 +120,7 @@ ax.set_xticks(XAXIS)
 ax.legend([pr1, pr2, pb1, pb2], 
           ["Random RATING error", "Naive-Bayes RATING pred. error", "Random BMULT error", "Naive-Bayes BMULT pred. error"],
           scatterpoints=1,
-          loc='center right')
+          loc='best')
 # plt.show()
 fig_path = os.path.join(FIGURES_DIR, 'psweep_error.png')
 plt.savefig(fig_path)
